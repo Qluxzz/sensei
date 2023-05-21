@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (placeholder, type_)
+import Html.Attributes exposing (placeholder, style, type_)
 import Html.Events exposing (onInput, onSubmit)
 import Romaji exposing (convertWord)
 
@@ -23,10 +23,16 @@ type alias Word =
     }
 
 
+type Result
+    = Undecided
+    | Correct
+    | Incorrect String
+
+
 type alias Model =
     { word : Word
     , attempt : String
-    , result : Maybe String
+    , result : Result
     }
 
 
@@ -42,7 +48,7 @@ init =
             ]
         }
         ""
-        Nothing
+        Undecided
 
 
 type Msg
@@ -55,10 +61,10 @@ update msg model =
     case msg of
         SubmitAttempt ->
             if model.attempt == convertWord model.word.hiraganaKatakana then
-                { model | result = Just "Success!" }
+                { model | result = Correct }
 
             else
-                { model | result = Just <| "Sorry, that's not right\nIt should be: " ++ convertWord model.word.hiraganaKatakana }
+                { model | result = Incorrect <| "Sorry, that's not right\nIt should be: " ++ convertWord model.word.hiraganaKatakana }
 
         Input str ->
             { model | attempt = str }
@@ -70,14 +76,22 @@ view model =
         [ p []
             [ text <| "Your word is " ++ model.word.kanji
             , br [] []
+            , ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.description)
+            , br [] []
             , text <| model.word.hiraganaKatakana
             , br [] []
-            , input [ type_ "text", placeholder "Enter romaji of above word", onInput Input ] []
-            , case model.result of
-                Just res ->
-                    text res
+            , div [ style "display" "flex", style "gap" "10px" ]
+                [ p [] [ text "Enter romaji of above word" ]
+                , input [ type_ "text", onInput Input ] []
+                , case model.result of
+                    Correct ->
+                        text "Success!"
 
-                Nothing ->
-                    text ""
+                    Incorrect txt ->
+                        text txt
+
+                    Undecided ->
+                        text ""
+                ]
             ]
         ]

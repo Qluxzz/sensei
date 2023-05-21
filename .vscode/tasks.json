@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "watch elm client",
+            "type": "shell",
+            "command": "elm-live src/Main.elm -- --output=elm.js --debug",
+            "problemMatcher": [],
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
+            "presentation": {
+                "group": "watch"
+            }
+        }
+    ]
+}
