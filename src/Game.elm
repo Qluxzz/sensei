@@ -57,28 +57,26 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ p []
-            [ text <| "Your word is " ++ model.word.str
-            , br [] []
-            , text <| model.word.str ++ " means:"
-            , ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.glossary)
-            , br [] []
-            , text <| model.word.normalized
-            , br [] []
-            , div [ style "display" "flex", style "gap" "10px" ]
-                [ p [] [ text "Enter romaji of above word" ]
-                , input [ type_ "text", onInput Input, value model.attempt ] []
-                , button [ onClick SubmitAttempt ] [ text "Submit" ]
-                ]
-            , br [] []
-            , case model.result of
-                Correct ->
-                    div [] [ text "Success!", button [ type_ "button", onClick NextWord ] [ text "Next word" ] ]
-
-                Incorrect txt ->
-                    text txt
-
-                Undecided ->
-                    text ""
+        [ text <| "Your word is " ++ model.word.str
+        , br [] []
+        , text <| model.word.str ++ " means:"
+        , ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.glossary)
+        , br [] []
+        , text <| model.word.normalized
+        , br [] []
+        , div [ style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
+            [ p [] [ text "Enter romaji of above word" ]
+            , input [ type_ "text", onInput Input, value model.attempt ] []
+            , button [ onClick SubmitAttempt ] [ text "Submit" ]
             ]
+        , br [] []
+        , case model.result of
+            Correct ->
+                div [] [ text "Success!", button [ type_ "button", onClick NextWord ] [ text "Next word" ] ]
+
+            Incorrect txt ->
+                text txt
+
+            Undecided ->
+                text ""
         ]

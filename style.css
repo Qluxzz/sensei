@@ -59,7 +59,6 @@ h6 {
 /* END OF CSS RESET */
 
 body {
+  font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", Osaka, "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
   padding: 10px;
-  display: flex;
-  justify-content: center;
 }
