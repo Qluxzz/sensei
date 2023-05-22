@@ -6,6 +6,6 @@ Sensei is an online app made in order to make you learn japanese words and their
 
 You get a word in hiragana/katakana and then write it out in romaji to train your understanding of hiragana/katakana.
 
-After this, if the word is a kanji, you get to see the kanji and you write it out in hiragana/katakana.
+If the word includes kanji, you now get to input it on a japanese keyboard as hiragana/katakana.
 
-You also get examples of how to use this word in a sentence.
+The last question is what does the word mean, one of the glossary words is enough to get it right
