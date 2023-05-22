@@ -84,6 +84,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   flex-grow: 1;
+  align-items: center;
 }
 
 .content {
@@ -91,6 +92,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   flex-grow: 1;
+  width: min(100%, 40ch);
 }
 
 button {
