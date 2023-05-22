@@ -1,8 +1,8 @@
 module Game exposing (..)
 
-import Html exposing (Html, br, div, form, input, li, p, text, ul)
-import Html.Attributes exposing (style, type_)
-import Html.Events exposing (onInput, onSubmit)
+import Html exposing (Html, br, button, div, input, li, p, text, ul)
+import Html.Attributes exposing (style, type_, value)
+import Html.Events exposing (onClick, onInput)
 import Romaji exposing (convertWord)
 import Words exposing (Word)
 
@@ -33,6 +33,7 @@ type alias Model =
 type Msg
     = SubmitAttempt
     | Input String
+    | NextWord
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -48,10 +49,14 @@ update msg model =
         Input str ->
             ( { model | attempt = str }, Cmd.none )
 
+        -- Handled by Main.elm
+        NextWord ->
+            ( model, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
-    form [ onSubmit SubmitAttempt ]
+    div []
         [ p []
             [ text <| "Your word is " ++ model.word.str
             , br [] []
@@ -62,12 +67,13 @@ view model =
             , br [] []
             , div [ style "display" "flex", style "gap" "10px" ]
                 [ p [] [ text "Enter romaji of above word" ]
-                , input [ type_ "text", onInput Input ] []
+                , input [ type_ "text", onInput Input, value model.attempt ] []
+                , button [ onClick SubmitAttempt ] [ text "Submit" ]
                 ]
             , br [] []
             , case model.result of
                 Correct ->
-                    text "Success!"
+                    div [] [ text "Success!", button [ type_ "button", onClick NextWord ] [ text "Next word" ] ]
 
                 Incorrect txt ->
                     text txt

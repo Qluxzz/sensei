@@ -35,7 +35,12 @@ type State
 
 init : ( Model, Cmd Msg )
 init =
-    ( { state = Loading }, Random.generate GetEntryId (Random.int 0 amountOfWords) )
+    ( { state = Loading }, randomWordIndex )
+
+
+randomWordIndex : Cmd Msg
+randomWordIndex =
+    Random.generate GetEntryId (Random.int 0 amountOfWords)
 
 
 type Msg
@@ -74,7 +79,11 @@ update msg model =
                         ( updatedModel, cmd ) =
                             Game.update gameMsg m
                     in
-                    ( { state = Playing updatedModel }, Cmd.map GameMsg cmd )
+                    if gameMsg == Game.NextWord then
+                        ( { state = Loading }, randomWordIndex )
+
+                    else
+                        ( { state = Playing updatedModel }, Cmd.map GameMsg cmd )
 
                 _ ->
                     ( model, Cmd.none )
