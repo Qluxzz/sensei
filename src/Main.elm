@@ -4,6 +4,7 @@ import Array
 import Browser
 import Game
 import Html exposing (..)
+import Html.Attributes exposing (class)
 import Random
 import Words exposing (amountOfWords, words)
 
@@ -15,7 +16,7 @@ main =
         , view =
             \model ->
                 { title = "Sensei"
-                , body = [ view model ]
+                , body = view model
                 }
         , update = update
         , subscriptions = \_ -> Sub.none
@@ -92,14 +93,23 @@ update msg model =
             ( model, Cmd.none )
 
 
-view : Model -> Html Msg
+baseView : Html Msg -> List (Html Msg)
+baseView content =
+    [ header [] [ text "Sensei" ]
+    , div [ class "container" ] [ content ]
+    ]
+
+
+view : Model -> List (Html Msg)
 view model =
-    case model.state of
-        Playing gameModel ->
-            Html.map GameMsg (Game.view gameModel)
+    baseView
+        (case model.state of
+            Playing gameModel ->
+                Html.map GameMsg (Game.view gameModel)
 
-        Loading ->
-            text "Loading word..."
+            Loading ->
+                text "Loading word..."
 
-        Failed errMsg ->
-            text errMsg
+            Failed errMsg ->
+                text errMsg
+        )

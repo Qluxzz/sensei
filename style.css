@@ -15,6 +15,14 @@
 }
 
 /*
+  3. Allow percentage-based heights in the application
+*/
+html,
+body {
+  height: 100%;
+}
+
+/*
   Typographic tweaks!
   4. Add accessible line-height
   5. Improve text rendering
@@ -53,18 +61,53 @@ h6 {
 html,
 body {
   margin: 0;
-  height: 100%;
   overflow: hidden;
 }
 
 body {
   font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", Osaka, "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
   padding: 10px;
+
+  background-color: pink;
+  color: #000;
+  font-weight: 600;
+
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .container {
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  height: 100%;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+button {
+  border-radius: 10px;
+  background: none;
+  border: 2px solid #222;
+  cursor: pointer;
+  color: #000;
+}
+
+input[type=text] {
+  border-radius: 10px;
+  border: 2px solid #222;
+  background-color: rgb(225, 157, 167);
+}
+
+header {
+  border-bottom: 2px solid #000;
+  font-weight: bolder;
 }
