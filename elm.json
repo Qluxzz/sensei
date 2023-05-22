@@ -9,7 +9,8 @@
             "billstclair/elm-xml-eeue56": "3.1.1",
             "elm/browser": "1.0.2",
             "elm/core": "1.0.5",
-            "elm/html": "1.0.0"
+            "elm/html": "1.0.0",
+            "elm/random": "1.0.0"
         },
         "indirect": {
             "elm/json": "1.1.3",
@@ -20,7 +21,11 @@
         }
     },
     "test-dependencies": {
-        "direct": {},
-        "indirect": {}
+        "direct": {
+            "elm-explorations/test": "2.1.1"
+        },
+        "indirect": {
+            "elm/bytes": "1.0.8"
+        }
     }
 }

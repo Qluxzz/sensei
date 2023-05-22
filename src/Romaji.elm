@@ -279,17 +279,31 @@ convertWordHelper acc word =
                 sStr =
                     String.fromChar second
             in
-            case Dict.get (fStr ++ sStr) hiraganaKatakanaToRomaji of
-                Just match ->
-                    convertWordHelper (acc ++ match) rest
+            if fStr == "っ" then
+                -- The first char of the mora should be duplicated
+                let
+                    mora =
+                        Dict.get sStr hiraganaKatakanaToRomaji |> Maybe.withDefault "?"
+                in
+                case String.uncons mora of
+                    Just ( fChar, mRest ) ->
+                        convertWordHelper (acc ++ String.fromChar fChar ++ String.fromChar fChar ++ mRest) rest
 
-                Nothing ->
-                    case Dict.get fStr hiraganaKatakanaToRomaji of
-                        Just match2 ->
-                            convertWordHelper (acc ++ match2) (second :: rest)
+                    _ ->
+                        convertWordHelper (acc ++ mora) rest
 
-                        Nothing ->
-                            convertWordHelper (acc ++ "?") (second :: rest)
+            else
+                case Dict.get (fStr ++ sStr) hiraganaKatakanaToRomaji of
+                    Just match ->
+                        convertWordHelper (acc ++ match) rest
+
+                    Nothing ->
+                        case Dict.get fStr hiraganaKatakanaToRomaji of
+                            Just match2 ->
+                                convertWordHelper (acc ++ match2) (second :: rest)
+
+                            Nothing ->
+                                convertWordHelper (acc ++ "?") (second :: rest)
 
         first :: _ ->
             let

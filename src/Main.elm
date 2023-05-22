@@ -1,97 +1,96 @@
 module Main exposing (main)
 
+import Array
 import Browser
+import Game
 import Html exposing (..)
-import Html.Attributes exposing (placeholder, style, type_)
-import Html.Events exposing (onInput, onSubmit)
-import Romaji exposing (convertWord)
+import Random
+import Words exposing (amountOfWords, words)
 
 
 main : Program () Model Msg
 main =
-    Browser.sandbox
-        { init = init
-        , view = view
+    Browser.document
+        { init = \_ -> init
+        , view =
+            \model ->
+                { title = "Sensei"
+                , body = [ view model ]
+                }
         , update = update
+        , subscriptions = \_ -> Sub.none
         }
-
-
-type alias Word =
-    { kanji : String
-    , hiraganaKatakana : String
-    , description : List String
-    }
-
-
-type Result
-    = Undecided
-    | Correct
-    | Incorrect String
 
 
 type alias Model =
-    { word : Word
-    , attempt : String
-    , result : Result
+    { state : State
     }
 
 
-init : Model
+type State
+    = Loading
+    | Playing Game.Model
+    | Failed String
+
+
+init : ( Model, Cmd Msg )
 init =
-    Model
-        { kanji = "阿吽の呼吸"
-        , hiraganaKatakana = "あうんのこきゅう"
-        , description =
-            [ "the harmonizing, mentally and physically, of two parties engaged in an activity"
-            , "singing from the same hymn-sheet"
-            , "dancing to the same beat"
-            ]
-        }
-        ""
-        Undecided
+    ( { state = Loading }, Random.generate GetEntryId (Random.int 0 amountOfWords) )
 
 
 type Msg
-    = SubmitAttempt
-    | Input String
+    = GetEntryId Int
+    | GameMsg Game.Msg
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        SubmitAttempt ->
-            if model.attempt == convertWord model.word.hiraganaKatakana then
-                { model | result = Correct }
+    case model.state of
+        Loading ->
+            case msg of
+                GetEntryId index ->
+                    let
+                        word =
+                            Array.get index words
+                    in
+                    case word of
+                        Just w ->
+                            let
+                                ( gameModel, cmd ) =
+                                    Game.init w
+                            in
+                            ( { state = Playing gameModel }, Cmd.map GameMsg cmd )
 
-            else
-                { model | result = Incorrect <| "Sorry, that's not right\nIt should be: " ++ convertWord model.word.hiraganaKatakana }
+                        _ ->
+                            ( { state = Failed "Failed to get word" }, Cmd.none )
 
-        Input str ->
-            { model | attempt = str }
+                _ ->
+                    ( model, Cmd.none )
+
+        Playing m ->
+            case msg of
+                GameMsg gameMsg ->
+                    let
+                        ( updatedModel, cmd ) =
+                            Game.update gameMsg m
+                    in
+                    ( { state = Playing updatedModel }, Cmd.map GameMsg cmd )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Failed _ ->
+            ( model, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
-    form [ onSubmit SubmitAttempt ]
-        [ p []
-            [ text <| "Your word is " ++ model.word.kanji
-            , br [] []
-            , ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.description)
-            , br [] []
-            , text <| model.word.hiraganaKatakana
-            , br [] []
-            , div [ style "display" "flex", style "gap" "10px" ]
-                [ p [] [ text "Enter romaji of above word" ]
-                , input [ type_ "text", onInput Input ] []
-                , case model.result of
-                    Correct ->
-                        text "Success!"
+    case model.state of
+        Playing gameModel ->
+            Html.map GameMsg (Game.view gameModel)
 
-                    Incorrect txt ->
-                        text txt
+        Loading ->
+            text "Loading word..."
 
-                    Undecided ->
-                        text ""
-                ]
-            ]
-        ]
+        Failed errMsg ->
+            text errMsg
