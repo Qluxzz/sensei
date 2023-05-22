@@ -7,12 +7,23 @@ import Romaji exposing (convertWord)
 import Words exposing (Word)
 
 
+type State
+    = Romaji -- Enter the word in romaji representation
+    | RomajiToHiragana -- Convert the romaji to hiragana
+    | WhatDoesWordMean -- Enter what the word means
+
+
+cleanAttempt : Attempt
+cleanAttempt =
+    Attempt "" Undecided
+
+
 init : Word -> ( Model, Cmd Msg )
 init word =
-    ( Model
-        word
-        ""
-        Undecided
+    ( { word = word
+      , attempt = cleanAttempt
+      , state = Romaji
+      }
     , Cmd.none
     )
 
@@ -20,34 +31,67 @@ init word =
 type Result
     = Undecided
     | Correct
-    | Incorrect String
+    | Incorrect
 
 
 type alias Model =
     { word : Word
-    , attempt : String
+    , attempt : Attempt
+    , state : State
+    }
+
+
+type alias Attempt =
+    { input : String
     , result : Result
     }
 
 
 type Msg
-    = SubmitAttempt
+    = Submit
     | Input String
     | NextWord
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        SubmitAttempt ->
-            if String.toLower model.attempt == convertWord model.word.normalized then
-                ( { model | result = Correct }, Cmd.none )
+    let
+        attempt =
+            model.attempt
 
-            else
-                ( { model | result = Incorrect <| "Sorry, that's not right\nIt should be: " ++ convertWord model.word.normalized }, Cmd.none )
+        failedAttempt =
+            { attempt | result = Incorrect }
+    in
+    case msg of
+        Submit ->
+            case model.state of
+                Romaji ->
+                    if String.toLower attempt.input == convertWord model.word.normalized then
+                        ( { model | state = RomajiToHiragana, attempt = cleanAttempt }, Cmd.none )
+
+                    else
+                        ( { model | state = Romaji, attempt = failedAttempt }, Cmd.none )
+
+                RomajiToHiragana ->
+                    if String.toLower attempt.input == model.word.normalized then
+                        ( { model | state = WhatDoesWordMean, attempt = cleanAttempt }, Cmd.none )
+
+                    else
+                        ( { model | state = RomajiToHiragana, attempt = failedAttempt }, Cmd.none )
+
+                WhatDoesWordMean ->
+                    if List.any ((==) (String.toLower attempt.input)) model.word.glossary then
+                        ( { model | attempt = failedAttempt }, Cmd.none )
+
+                    else
+                        ( { model | state = WhatDoesWordMean, attempt = failedAttempt }, Cmd.none )
 
         Input str ->
-            ( { model | attempt = str }, Cmd.none )
+            let
+                updatedAttempt =
+                    { attempt | input = str }
+            in
+            ( { model | attempt = updatedAttempt }, Cmd.none )
 
         -- Handled by Main.elm
         NextWord ->
@@ -56,28 +100,68 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+    let
+        attempt =
+            model.attempt
+    in
     div [ style "display" "flex", style "flex-direction" "column", style "height" "100%" ]
-        [ div [ style "flex-grow" "1" ]
-            [ text <| "Your word is " ++ model.word.str
-            , br [] []
-            , text <| model.word.str ++ " means:"
-            , ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.glossary)
-            ]
-        , text <| model.word.normalized
-        , br [] []
-        , div [ style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-            [ p [] [ text "Enter romaji of above word" ]
-            , input [ type_ "text", onInput Input, value model.attempt ] []
-            , button [ onClick SubmitAttempt ] [ text "Submit" ]
-            ]
-        , br [] []
-        , case model.result of
-            Correct ->
-                div [] [ text "Success!", button [ type_ "button", onClick NextWord ] [ text "Next word" ] ]
+        (case model.state of
+            Romaji ->
+                [ descriptionView ("Your word is " ++ model.word.str)
+                    (Just <|
+                        div []
+                            [ text <| model.word.str ++ " means:"
+                            , ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.glossary)
+                            ]
+                    )
+                , resultView attempt.result
+                , br [] []
+                , text <| model.word.normalized
+                , inputView "Enter romaji of above word" attempt.input
+                ]
 
-            Incorrect txt ->
-                text txt
+            RomajiToHiragana ->
+                [ descriptionView ("The word in romaji is " ++ convertWord model.word.normalized) Nothing
+                , resultView attempt.result
+                , br [] []
+                , inputView "Enter hiragana of above word" attempt.input
+                ]
 
-            Undecided ->
-                text ""
+            WhatDoesWordMean ->
+                [ descriptionView ("Your word is " ++ model.word.str) Nothing
+                , resultView attempt.result
+                , br [] []
+                , text <| model.word.normalized
+                , inputView "Enter one of the glossary words of the above word" attempt.input
+                ]
+        )
+
+
+descriptionView : String -> Maybe (Html msg) -> Html msg
+descriptionView description extra =
+    div [ style "flex-grow" "1" ]
+        [ text <| description
+        , extra |> Maybe.withDefault (text "")
+        ]
+
+
+resultView : Result -> Html msg
+resultView res =
+    case res of
+        Correct ->
+            text "Right"
+
+        Incorrect ->
+            text "Wrong!"
+
+        Undecided ->
+            text ""
+
+
+inputView : String -> String -> Html Msg
+inputView helperText input =
+    div [ style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
+        [ p [] [ text helperText ]
+        , Html.input [ type_ "text", onInput Input, value input ] []
+        , button [ onClick Submit ] [ text "Submit" ]
         ]
