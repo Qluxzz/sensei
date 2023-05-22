@@ -40,7 +40,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SubmitAttempt ->
-            if model.attempt == convertWord model.word.normalized then
+            if String.toLower model.attempt == convertWord model.word.normalized then
                 ( { model | result = Correct }, Cmd.none )
 
             else
@@ -56,12 +56,13 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ text <| "Your word is " ++ model.word.str
-        , br [] []
-        , text <| model.word.str ++ " means:"
-        , ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.glossary)
-        , br [] []
+    div [ style "display" "flex", style "flex-direction" "column", style "height" "100%" ]
+        [ div [ style "flex-grow" "1" ]
+            [ text <| "Your word is " ++ model.word.str
+            , br [] []
+            , text <| model.word.str ++ " means:"
+            , ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.glossary)
+            ]
         , text <| model.word.normalized
         , br [] []
         , div [ style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
