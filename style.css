@@ -110,4 +110,5 @@ input[type=text] {
 header {
   border-bottom: 2px solid #000;
   font-weight: bolder;
+  letter-spacing: -0.1em;
 }
