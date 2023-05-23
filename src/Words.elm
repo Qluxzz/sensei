@@ -22198,5 +22198,6 @@ parseToWord parts =
             Word "" "" []
 
 
+removeFirstAndLastCharacter : String -> String
 removeFirstAndLastCharacter =
     String.dropLeft 1 >> String.dropRight 1
