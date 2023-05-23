@@ -66,8 +66,6 @@ body {
 
 body {
   font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", Osaka, "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
-  padding: 10px;
-
   background-color: pink;
   color: #000;
   font-weight: 600;
@@ -93,6 +91,9 @@ body {
   overflow: hidden;
   flex-grow: 1;
   width: min(100%, 40ch);
+  background-color: white;
+  padding: 10px;
+  border-radius: 10px;
 }
 
 button {
@@ -106,11 +107,13 @@ button {
 input[type=text] {
   border-radius: 10px;
   border: 2px solid #222;
-  background-color: rgb(225, 157, 167);
+  background-color: pink;
 }
 
 header {
-  border-bottom: 2px solid #000;
+  border-bottom: 2px solid #ccc;
   font-weight: bolder;
   letter-spacing: -0.1em;
+  background-color: white;
+  padding: 5px 10px;
 }
