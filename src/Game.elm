@@ -148,7 +148,7 @@ view model =
                 [ div [] [ text <| "The word in romaji is " ++ convertWord model.word.normalized ]
                 , div [ style "flex-grow" "1" ] []
                 , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ p [] [ text "Enter hiragana of above word" ]
+                    [ p [] [ text <| "Enter hiragana for " ++ convertWord model.word.normalized ]
                     , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
                     , case model.attempt.result of
                         Correct ->
@@ -164,11 +164,10 @@ view model =
                 ]
 
             WhatDoesWordMean ->
-                [ div [] [ text <| "Your word is " ++ model.word.str ]
-                , text <| model.word.normalized
+                [ div [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.normalized ++ ")" ] ]
                 , div [ style "flex-grow" "1" ] []
                 , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ p [] [ text "Enter one of the glossary words of the above word" ]
+                    [ p [] [ text <| "Enter one of the glossary words for " ++ model.word.str ]
                     , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
                     , case model.attempt.result of
                         Correct ->
