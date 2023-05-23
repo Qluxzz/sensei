@@ -29,7 +29,7 @@ init word =
     )
 
 
-type AttemptResult
+type Result
     = Undecided
     | Correct
     | Incorrect
@@ -44,7 +44,7 @@ type alias Model =
 
 type alias Attempt =
     { input : String
-    , result : AttemptResult
+    , result : Result
     }
 
 
@@ -133,7 +133,6 @@ update msg model =
 view : Model -> Html Msg
 view model =
     let
-        translation : Result String (List ( String, String ))
         translation =
             groupByMora model.word.normalized
     in
