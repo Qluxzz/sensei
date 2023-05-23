@@ -1,11 +1,11 @@
 module Tooltip exposing (withTooltip)
 
-import Html exposing (Html, span, text)
-import Html.Attributes exposing (attribute)
+import Html exposing (Html, text)
+import Html.Attributes
 
 
 {-| Adds a tooltip that shows when element is hovered/touched
 -}
 withTooltip : String -> String -> Html msg
 withTooltip text_ tooltip =
-    span [ attribute "data-tooltip" tooltip ] [ text text_ ]
+    Html.button [ Html.Attributes.type_ "button", Html.Attributes.attribute "data-tooltip" tooltip ] [ text text_ ]
