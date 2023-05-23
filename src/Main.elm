@@ -73,12 +73,12 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        Playing m ->
+        Playing gameModel ->
             case msg of
                 GameMsg gameMsg ->
                     let
                         ( updatedModel, cmd ) =
-                            Game.update gameMsg m
+                            Game.update gameMsg gameModel
                     in
                     if gameMsg == Game.NextWord then
                         ( { state = Loading }, randomWordIndex )
