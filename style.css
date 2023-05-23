@@ -96,6 +96,10 @@ body {
   border-radius: 10px;
 }
 
+ul {
+  list-style-type: circle;
+}
+
 button {
   border-radius: 10px;
   background: none;
