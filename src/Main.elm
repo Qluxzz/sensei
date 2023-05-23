@@ -55,20 +55,16 @@ update msg model =
         Loading ->
             case msg of
                 GetEntryId index ->
-                    let
-                        word =
-                            Array.get index words
-                    in
-                    case word of
-                        Just w ->
-                            let
-                                ( gameModel, cmd ) =
-                                    Game.init w
-                            in
+                    case
+                        Array.get index words
+                            |> Result.fromMaybe ("Failed to find word with id " ++ String.fromInt index)
+                            |> Result.andThen Game.init
+                    of
+                        Ok ( gameModel, cmd ) ->
                             ( { state = Playing gameModel }, Cmd.map GameMsg cmd )
 
-                        _ ->
-                            ( { state = Failed "Failed to get word" }, Cmd.none )
+                        Err err ->
+                            ( { state = Failed err }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )

@@ -1,4 +1,4 @@
-module Romaji exposing (convertWord, groupByMora)
+module Romaji exposing (CharacterMapping, groupByMora)
 
 import Dict exposing (Dict)
 
@@ -263,27 +263,20 @@ hiraganaKatakanaToRomaji =
     Dict.union hiraganaToRomaji katakanaToRomaji
 
 
-{-| Converts a word from hiragana/katakana to romaji
--}
-convertWord : String -> String
-convertWord word =
-    word
-        |> groupByMora
-        |> Result.map
-            (List.map Tuple.second
-                >> String.concat
-            )
-        |> Result.withDefault "Failed to convert word!"
+type alias CharacterMapping =
+    { mora : String -- Hiragana or katakana
+    , romaji : String
+    }
 
 
 {-| Converts a word in hiragana/katakana to a list of moras and their romaji equivalence
 -}
-groupByMora : String -> Result String (List ( String, String ))
+groupByMora : String -> Result String (List CharacterMapping)
 groupByMora input =
     groupByMoraHeler [] (String.toList input)
 
 
-groupByMoraHeler : List ( String, String ) -> List Char -> Result String (List ( String, String ))
+groupByMoraHeler : List CharacterMapping -> List Char -> Result String (List CharacterMapping)
 groupByMoraHeler acc input =
     case input of
         'っ' :: second :: rest ->
@@ -292,7 +285,7 @@ groupByMoraHeler acc input =
                 Just mora ->
                     case String.uncons mora of
                         Just ( a, b ) ->
-                            groupByMoraHeler (acc ++ [ ( "っ" ++ String.fromChar second, String.fromChar a ++ String.fromChar a ++ b ) ]) rest
+                            groupByMoraHeler (acc ++ [ { mora = "っ" ++ String.fromChar second, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) rest
 
                         Nothing ->
                             Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ "'"
@@ -303,12 +296,12 @@ groupByMoraHeler acc input =
         first :: second :: rest ->
             case Dict.get (String.fromChar first ++ String.fromChar second) hiraganaKatakanaToRomaji of
                 Just match ->
-                    groupByMoraHeler (acc ++ [ ( String.fromChar first ++ String.fromChar second, match ) ]) rest
+                    groupByMoraHeler (acc ++ [ { mora = String.fromChar first ++ String.fromChar second, romaji = match } ]) rest
 
                 Nothing ->
                     case Dict.get (String.fromChar first) hiraganaKatakanaToRomaji of
                         Just match ->
-                            groupByMoraHeler (acc ++ [ ( String.fromChar first, match ) ]) (second :: rest)
+                            groupByMoraHeler (acc ++ [ { mora = String.fromChar first, romaji = match } ]) (second :: rest)
 
                         Nothing ->
                             Err <| "Failed to find romaji for '" ++ String.fromChar first ++ "'"
@@ -316,7 +309,7 @@ groupByMoraHeler acc input =
         first :: _ ->
             case Dict.get (String.fromChar first) hiraganaKatakanaToRomaji of
                 Just match ->
-                    Ok <| acc ++ [ ( String.fromChar first, match ) ]
+                    Ok <| acc ++ [ { mora = String.fromChar first, romaji = match } ]
 
                 Nothing ->
                     Err <| "Failed to find romaji for '" ++ String.fromChar first ++ "'"

@@ -1,51 +1,44 @@
-module ConvertWord exposing (suite, suite2)
+module ConvertWord exposing (suite)
 
 import Expect
-import Romaji exposing (convertWord, groupByMora)
+import Romaji exposing (CharacterMapping, groupByMora)
 import Test exposing (Test, describe, test)
 
 
-type alias Input =
-    String
-
-
-type alias Expected =
-    String
-
-
-cases : List ( Input, Expected )
+cases : List ( String, Result String (List CharacterMapping) )
 cases =
-    [ ( "いっとう", "ittou" )
-    , ( "あうんのこきゅう", "aunnokokyuu" )
+    [ ( "いっとう"
+      , Ok
+            [ { mora = "い", romaji = "i" }
+            , { mora = "っと", romaji = "tto" }
+            , { mora = "う", romaji = "u" }
+            ]
+      )
+    , ( "あうんのこきゅう"
+      , Ok
+            [ { mora = "あ", romaji = "a" }
+            , { mora = "う", romaji = "u" }
+            , { mora = "ん", romaji = "n" }
+            , { mora = "の", romaji = "no" }
+            , { mora = "こ", romaji = "ko" }
+            , { mora = "きゅ", romaji = "kyu" }
+            , { mora = "う", romaji = "u" }
+            ]
+      )
+    , ( "いんしゅ"
+      , Ok
+            [ { mora = "い", romaji = "i" }
+            , { mora = "ん", romaji = "n" }
+            , { mora = "しゅ", romaji = "shu" }
+            ]
+      )
+    , ( "ん", Ok [ { mora = "ん", romaji = "n" } ] )
+    , ( "abc", Err "Failed to find romaji for 'a'" )
     ]
 
 
 suite : Test
 suite =
-    describe "Convert word to hiragana and or katakana"
-        (List.map
-            (\( input, expected ) ->
-                test (input ++ " = " ++ expected) <|
-                    \_ ->
-                        convertWord input
-                            |> Expect.equal expected
-            )
-            cases
-        )
-
-
-cases2 : List ( Input, Result String (List ( String, String )) )
-cases2 =
-    [ ( "いっとう", Ok [ ( "い", "i" ), ( "っと", "tto" ), ( "う", "u" ) ] )
-    , ( "あうんのこきゅう", Ok [ ( "あ", "a" ), ( "う", "u" ), ( "ん", "n" ), ( "の", "no" ), ( "こ", "ko" ), ( "きゅ", "kyu" ), ( "う", "u" ) ] )
-    , ( "いんしゅ", Ok [ ( "い", "i" ), ( "ん", "n" ), ( "しゅ", "shu" ) ] )
-    , ( "ん", Ok [ ( "ん", "n" ) ] )
-    , ( "abc", Err "Failed to find romaji for 'a'" )
-    ]
-
-
-suite2 : Test
-suite2 =
     describe "Get romaji per mora in word"
         (List.map
             (\( input, expected ) ->
@@ -54,5 +47,5 @@ suite2 =
                         groupByMora input
                             |> Expect.equal expected
             )
-            cases2
+            cases
         )
