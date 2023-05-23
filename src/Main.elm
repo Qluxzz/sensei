@@ -3,7 +3,7 @@ module Main exposing (main)
 import Array
 import Browser
 import Game
-import Html exposing (..)
+import Html exposing (Html, div, header, text)
 import Html.Attributes exposing (class)
 import Random
 import Words exposing (amountOfWords, words)

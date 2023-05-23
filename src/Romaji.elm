@@ -1,4 +1,4 @@
-module Romaji exposing (convertWord)
+module Romaji exposing (convertWord, groupByMora)
 
 import Dict exposing (Dict)
 
@@ -263,54 +263,63 @@ hiraganaKatakanaToRomaji =
     Dict.union hiraganaToRomaji katakanaToRomaji
 
 
+{-| Converts a word from hiragana/katakana to romaji
+-}
 convertWord : String -> String
 convertWord word =
-    convertWordHelper "" (String.toList word)
+    word
+        |> groupByMora
+        |> Result.map
+            (List.map Tuple.second
+                >> String.concat
+            )
+        |> Result.withDefault "Failed to convert word!"
 
 
-convertWordHelper : String -> List Char -> String
-convertWordHelper acc word =
-    case word of
+{-| Converts a word in hiragana/katakana to a list of moras and their romaji equivalence
+-}
+groupByMora : String -> Result String (List ( String, String ))
+groupByMora input =
+    groupByMoraHeler [] (String.toList input)
+
+
+groupByMoraHeler : List ( String, String ) -> List Char -> Result String (List ( String, String ))
+groupByMoraHeler acc input =
+    case input of
+        'っ' :: second :: rest ->
+            -- The first char of the mora should be duplicated
+            case Dict.get (String.fromChar second) hiraganaKatakanaToRomaji of
+                Just mora ->
+                    case String.uncons mora of
+                        Just ( a, b ) ->
+                            groupByMoraHeler (acc ++ [ ( "っ" ++ String.fromChar second, String.fromChar a ++ String.fromChar a ++ b ) ]) rest
+
+                        Nothing ->
+                            Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ "'"
+
+                Nothing ->
+                    Err <| "Failed to find romaji for '" ++ String.fromChar second ++ "'"
+
         first :: second :: rest ->
-            let
-                fStr =
-                    String.fromChar first
+            case Dict.get (String.fromChar first ++ String.fromChar second) hiraganaKatakanaToRomaji of
+                Just match ->
+                    groupByMoraHeler (acc ++ [ ( String.fromChar first ++ String.fromChar second, match ) ]) rest
 
-                sStr =
-                    String.fromChar second
-            in
-            if fStr == "っ" then
-                -- The first char of the mora should be duplicated
-                let
-                    mora =
-                        Dict.get sStr hiraganaKatakanaToRomaji |> Maybe.withDefault "?"
-                in
-                case String.uncons mora of
-                    Just ( fChar, mRest ) ->
-                        convertWordHelper (acc ++ String.fromChar fChar ++ String.fromChar fChar ++ mRest) rest
+                Nothing ->
+                    case Dict.get (String.fromChar first) hiraganaKatakanaToRomaji of
+                        Just match ->
+                            groupByMoraHeler (acc ++ [ ( String.fromChar first, match ) ]) (second :: rest)
 
-                    _ ->
-                        convertWordHelper (acc ++ mora) rest
-
-            else
-                case Dict.get (fStr ++ sStr) hiraganaKatakanaToRomaji of
-                    Just match ->
-                        convertWordHelper (acc ++ match) rest
-
-                    Nothing ->
-                        case Dict.get fStr hiraganaKatakanaToRomaji of
-                            Just match2 ->
-                                convertWordHelper (acc ++ match2) (second :: rest)
-
-                            Nothing ->
-                                convertWordHelper (acc ++ "?") (second :: rest)
+                        Nothing ->
+                            Err <| "Failed to find romaji for '" ++ String.fromChar first ++ "'"
 
         first :: _ ->
-            let
-                match =
-                    Dict.get (String.fromChar first) hiraganaKatakanaToRomaji |> Maybe.withDefault "?"
-            in
-            acc ++ match
+            case Dict.get (String.fromChar first) hiraganaKatakanaToRomaji of
+                Just match ->
+                    Ok <| acc ++ [ ( String.fromChar first, match ) ]
+
+                Nothing ->
+                    Err <| "Failed to find romaji for '" ++ String.fromChar first ++ "'"
 
         [] ->
-            acc
+            Ok acc

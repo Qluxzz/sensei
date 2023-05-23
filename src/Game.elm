@@ -1,9 +1,9 @@
-module Game exposing (..)
+module Game exposing (Model, Msg(..), init, update, view)
 
 import Html exposing (Html, button, div, form, li, p, span, text, ul)
-import Html.Attributes exposing (autofocus, class, disabled, style, type_, value)
+import Html.Attributes exposing (attribute, autofocus, class, disabled, style, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
-import Romaji exposing (convertWord)
+import Romaji exposing (convertWord, groupByMora)
 import Words exposing (Word)
 
 
@@ -28,7 +28,7 @@ init word =
     )
 
 
-type Result
+type AttemptResult
     = Undecided
     | Correct
     | Incorrect
@@ -43,7 +43,7 @@ type alias Model =
 
 type alias Attempt =
     { input : String
-    , result : Result
+    , result : AttemptResult
     }
 
 
@@ -59,36 +59,52 @@ update msg model =
     let
         attempt =
             model.attempt
-
-        failedAttempt =
-            { attempt | result = Incorrect }
-
-        correctAttempt =
-            { attempt | result = Correct }
     in
     case msg of
         Submit ->
+            let
+                failedAttempt =
+                    { attempt | result = Incorrect }
+
+                correctAttempt =
+                    { attempt | result = Correct }
+            in
             case model.state of
                 Romaji ->
-                    if String.toLower attempt.input == convertWord model.word.normalized then
-                        ( { model | attempt = correctAttempt }, Cmd.none )
+                    ( { model
+                        | attempt =
+                            if String.toLower attempt.input == convertWord model.word.normalized then
+                                correctAttempt
 
-                    else
-                        ( { model | state = Romaji, attempt = failedAttempt }, Cmd.none )
+                            else
+                                failedAttempt
+                      }
+                    , Cmd.none
+                    )
 
                 RomajiToHiragana ->
-                    if String.toLower attempt.input == model.word.normalized then
-                        ( { model | attempt = correctAttempt }, Cmd.none )
+                    ( { model
+                        | attempt =
+                            if String.toLower attempt.input == model.word.normalized then
+                                correctAttempt
 
-                    else
-                        ( { model | state = RomajiToHiragana, attempt = failedAttempt }, Cmd.none )
+                            else
+                                failedAttempt
+                      }
+                    , Cmd.none
+                    )
 
                 WhatDoesWordMean ->
-                    if List.any ((==) (String.toLower attempt.input)) model.word.glossary then
-                        ( { model | attempt = correctAttempt }, Cmd.none )
+                    ( { model
+                        | attempt =
+                            if List.any ((==) (String.toLower attempt.input)) model.word.glossary then
+                                correctAttempt
 
-                    else
-                        ( { model | attempt = failedAttempt }, Cmd.none )
+                            else
+                                failedAttempt
+                      }
+                    , Cmd.none
+                    )
 
         Input str ->
             let
@@ -116,75 +132,91 @@ update msg model =
 view : Model -> Html Msg
 view model =
     let
-        attempt =
-            model.attempt
+        translation : Result String (List ( String, String ))
+        translation =
+            groupByMora model.word.normalized
     in
-    div [ class "content" ]
-        (case model.state of
-            Romaji ->
-                [ p [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.normalized ++ ")" ] ]
-                , text "It means:"
-                , div [ style "overflow" "auto" ]
-                    [ ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.glossary)
-                    ]
-                , div [ style "flex-grow" "1" ] []
-                , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ p [] [ text <| "Please write " ++ model.word.normalized ++ " in romaji" ]
-                    , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
-                    , case model.attempt.result of
-                        Correct ->
-                            button [ type_ "button", onClick Continue ] [ text "Continue!" ]
+    case translation of
+        Err err ->
+            text err
 
-                        Incorrect ->
-                            button [] [ text "Submit" ]
+        Ok grouped ->
+            let
+                attempt : Attempt
+                attempt =
+                    model.attempt
+            in
+            div [ class "content" ]
+                (case model.state of
+                    Romaji ->
+                        [ p [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.normalized ++ ")" ] ]
+                        , text "It means:"
+                        , div [ style "overflow" "auto" ]
+                            [ ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.glossary)
+                            ]
+                        , div [ style "flex-grow" "1" ] []
+                        , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
+                            [ p [] ((text <| "Please write ") :: List.map (\( mora, romaji ) -> withTooltip mora romaji) grouped ++ [ text " in romaji" ])
+                            , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
+                            , case model.attempt.result of
+                                Correct ->
+                                    button [ type_ "button", onClick Continue ] [ text "Continue!" ]
 
-                        Undecided ->
-                            button [] [ text "Submit" ]
-                    ]
-                , resultView attempt.result
-                ]
+                                Incorrect ->
+                                    button [] [ text "Submit" ]
 
-            RomajiToHiragana ->
-                [ div [] [ text <| "The word in romaji is " ++ convertWord model.word.normalized ]
-                , div [ style "flex-grow" "1" ] []
-                , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ p [] [ text <| "Enter hiragana for " ++ convertWord model.word.normalized ]
-                    , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
-                    , case model.attempt.result of
-                        Correct ->
-                            button [ type_ "button", onClick Continue ] [ text "Continue!" ]
+                                Undecided ->
+                                    button [] [ text "Submit" ]
+                            ]
+                        , resultView attempt.result
+                        ]
 
-                        Incorrect ->
-                            button [] [ text "Submit" ]
+                    RomajiToHiragana ->
+                        [ div [] [ text <| "The word in romaji is " ++ convertWord model.word.normalized ]
+                        , div [ style "flex-grow" "1" ] []
+                        , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
+                            [ p [] (text "Enter hiragana for " :: List.map (\( mora, romaji ) -> withTooltip romaji mora) grouped)
+                            , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
+                            , case model.attempt.result of
+                                Correct ->
+                                    button [ type_ "button", onClick Continue ] [ text "Continue!" ]
 
-                        Undecided ->
-                            button [] [ text "Submit" ]
-                    ]
-                , resultView attempt.result
-                ]
+                                Incorrect ->
+                                    button [] [ text "Submit" ]
 
-            WhatDoesWordMean ->
-                [ div [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.normalized ++ ")" ] ]
-                , div [ style "flex-grow" "1" ] []
-                , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ p [] [ text <| "Enter one of the glossary words for " ++ model.word.str ]
-                    , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
-                    , case model.attempt.result of
-                        Correct ->
-                            button [ type_ "button", onClick NextWord ] [ text "Next word!" ]
+                                Undecided ->
+                                    button [] [ text "Submit" ]
+                            ]
+                        , resultView attempt.result
+                        ]
 
-                        Incorrect ->
-                            button [] [ text "Submit" ]
+                    WhatDoesWordMean ->
+                        [ div [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.normalized ++ ")" ] ]
+                        , div [ style "flex-grow" "1" ] []
+                        , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
+                            [ p [] [ text <| "Enter one of the glossary words for " ++ model.word.str ]
+                            , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
+                            , case model.attempt.result of
+                                Correct ->
+                                    button [ type_ "button", onClick NextWord ] [ text "Next word!" ]
 
-                        Undecided ->
-                            button [] [ text "Submit" ]
-                    ]
-                , resultView attempt.result
-                ]
-        )
+                                Incorrect ->
+                                    button [] [ text "Submit" ]
+
+                                Undecided ->
+                                    button [] [ text "Submit" ]
+                            ]
+                        , resultView attempt.result
+                        ]
+                )
 
 
-resultView : Result -> Html msg
+withTooltip : String -> String -> Html msg
+withTooltip text_ tooltip =
+    button [ type_ "button", attribute "data-tooltip" tooltip ] [ text text_ ]
+
+
+resultView : AttemptResult -> Html msg
 resultView res =
     p []
         [ case res of
