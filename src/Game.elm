@@ -1,9 +1,10 @@
 module Game exposing (Model, Msg(..), init, update, view)
 
 import Html exposing (Html, button, div, form, li, p, span, text, ul)
-import Html.Attributes exposing (attribute, autofocus, class, disabled, style, type_, value)
+import Html.Attributes exposing (autofocus, class, disabled, style, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Romaji exposing (convertWord, groupByMora)
+import Tooltip exposing (withTooltip)
 import Words exposing (Word)
 
 
@@ -211,12 +212,7 @@ view model =
                 )
 
 
-withTooltip : String -> String -> Html msg
-withTooltip text_ tooltip =
-    button [ type_ "button", attribute "data-tooltip" tooltip ] [ text text_ ]
-
-
-resultView : AttemptResult -> Html msg
+resultView : Result -> Html msg
 resultView res =
     p []
         [ case res of
