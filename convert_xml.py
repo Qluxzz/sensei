@@ -1,5 +1,6 @@
 import csv
 import gzip
+from typing import List
 import urllib.request
 import xml.etree.ElementTree as ET
 
@@ -22,15 +23,20 @@ def main():
 
                 tree = ET.parse(file)
 
-                for child in tree.iter("entry"):
-                    if should_skip(child):
-                        continue
+                for entry in tree.iter("entry"):
+                    if data := parse_entry(entry):
+                        writer.writerow(data)
 
-                    word = child.find("k_ele").find("keb").text
-                    kana = child.find("r_ele").find("reb").text
-                    glossary = [x.text for x in child.iter("gloss")]
 
-                    writer.writerow([word, kana, "|".join(glossary)])
+def parse_entry(entry: ET.Element) -> None | List[str]:
+    if should_skip(entry):
+        return None
+
+    word = entry.find("k_ele").find("keb").text
+    kana = entry.find("r_ele").find("reb").text
+    glossary = [x.text for x in entry.iter("gloss")]
+
+    return [word, kana, "|".join(glossary)]
 
 
 def should_skip(child: ET.Element) -> bool:
