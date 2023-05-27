@@ -28,7 +28,7 @@ init word =
             (\characterMapping ->
                 ( { word = word
                   , attempt = cleanAttempt
-                  , state = WhatDoesWordMean -- Romaji
+                  , state = Romaji
                   , characterMapping = characterMapping
                   , romaji = List.map .romaji characterMapping |> String.concat
                   , showGlossaryAtIndex = Set.empty
