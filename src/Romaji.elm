@@ -273,7 +273,7 @@ type alias CharacterMapping =
 -}
 groupByMora : String -> Result String (List CharacterMapping)
 groupByMora input =
-    groupByMoraHeler [] (String.toList input)
+    Result.mapError (\e -> "Failed to group word '" ++ input ++ "' by mora\n. Inner error: " ++ e) (groupByMoraHeler [] (String.toList input))
 
 
 groupByMoraHeler : List CharacterMapping -> List Char -> Result String (List CharacterMapping)
