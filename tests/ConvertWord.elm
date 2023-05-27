@@ -1,8 +1,10 @@
-module ConvertWord exposing (suite)
+module ConvertWord exposing (suite, suite2)
 
+import Array
 import Expect
 import Romaji exposing (CharacterMapping, groupByMora)
 import Test exposing (Test, describe, test)
+import Words exposing (words)
 
 
 cases : List ( String, Result String (List CharacterMapping) )
@@ -33,7 +35,15 @@ cases =
             ]
       )
     , ( "ん", Ok [ { mora = "ん", romaji = "n" } ] )
-    , ( "abc", Err "Failed to find romaji for 'a'" )
+    , ( "abc", Err "Failed to group word 'abc' by mora\n. Inner error: Failed to find romaji for 'a'" )
+    , ( "とっきょちょう"
+      , Ok
+            [ { mora = "と", romaji = "to" }
+            , { mora = "っきょ", romaji = "kkyo" }
+            , { mora = "ちょ", romaji = "cho" }
+            , { mora = "う", romaji = "u" }
+            ]
+      )
     ]
 
 
@@ -48,4 +58,19 @@ suite =
                             |> Expect.equal expected
             )
             cases
+        )
+
+
+suite2 : Test
+suite2 =
+    describe "No word should fail to be grouped by mora"
+        (Array.indexedMap
+            (\i ->
+                \{ normalized } ->
+                    -- Multiples of the same word can appear as a verb or a noun
+                    -- so we append the index to avoid "same test name error"
+                    test (String.fromInt i ++ ": " ++ normalized) <| \_ -> groupByMora normalized |> Expect.ok
+            )
+            words
+            |> Array.toList
         )

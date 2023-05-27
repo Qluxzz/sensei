@@ -279,6 +279,54 @@ groupByMora input =
 groupByMoraHeler : List CharacterMapping -> List Char -> Result String (List CharacterMapping)
 groupByMoraHeler acc input =
     case input of
+        'ッ' :: second :: third :: rest ->
+            -- The first char of the mora should be duplicated
+            case Dict.get (String.fromChar second ++ String.fromChar third) hiraganaKatakanaToRomaji of
+                Just mora ->
+                    case String.uncons mora of
+                        Just ( a, b ) ->
+                            groupByMoraHeler (acc ++ [ { mora = "ッ" ++ String.fromChar second ++ String.fromChar third, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) rest
+
+                        Nothing ->
+                            Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ String.fromChar third ++ "'"
+
+                Nothing ->
+                    case Dict.get (String.fromChar second) hiraganaKatakanaToRomaji of
+                        Just mora ->
+                            case String.uncons mora of
+                                Just ( a, b ) ->
+                                    groupByMoraHeler (acc ++ [ { mora = "っ" ++ String.fromChar second, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) (third :: rest)
+
+                                Nothing ->
+                                    Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ "'"
+
+                        Nothing ->
+                            Err <| "Failed to find romaji for '" ++ String.fromChar second ++ "'"
+
+        'っ' :: second :: third :: rest ->
+            -- The first char of the mora should be duplicated
+            case Dict.get (String.fromChar second ++ String.fromChar third) hiraganaKatakanaToRomaji of
+                Just mora ->
+                    case String.uncons mora of
+                        Just ( a, b ) ->
+                            groupByMoraHeler (acc ++ [ { mora = "っ" ++ String.fromChar second ++ String.fromChar third, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) rest
+
+                        Nothing ->
+                            Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ String.fromChar third ++ "'"
+
+                Nothing ->
+                    case Dict.get (String.fromChar second) hiraganaKatakanaToRomaji of
+                        Just mora ->
+                            case String.uncons mora of
+                                Just ( a, b ) ->
+                                    groupByMoraHeler (acc ++ [ { mora = "っ" ++ String.fromChar second, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) (third :: rest)
+
+                                Nothing ->
+                                    Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ "'"
+
+                        Nothing ->
+                            Err <| "Failed to find romaji for '" ++ String.fromChar second ++ "'"
+
         'っ' :: second :: rest ->
             -- The first char of the mora should be duplicated
             case Dict.get (String.fromChar second) hiraganaKatakanaToRomaji of
@@ -286,6 +334,20 @@ groupByMoraHeler acc input =
                     case String.uncons mora of
                         Just ( a, b ) ->
                             groupByMoraHeler (acc ++ [ { mora = "っ" ++ String.fromChar second, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) rest
+
+                        Nothing ->
+                            Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ "'"
+
+                Nothing ->
+                    Err <| "Failed to find romaji for '" ++ String.fromChar second ++ "'"
+
+        'ッ' :: second :: rest ->
+            -- The first char of the mora should be duplicated
+            case Dict.get (String.fromChar second) hiraganaKatakanaToRomaji of
+                Just mora ->
+                    case String.uncons mora of
+                        Just ( a, b ) ->
+                            groupByMoraHeler (acc ++ [ { mora = "ッ" ++ String.fromChar second, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) rest
 
                         Nothing ->
                             Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ "'"
