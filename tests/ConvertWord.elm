@@ -1,4 +1,4 @@
-module ConvertWord exposing (suite, suite2)
+module ConvertWord exposing (suite)
 
 import Array
 import Expect
@@ -35,7 +35,7 @@ cases =
             ]
       )
     , ( "ん", Ok [ { mora = "ん", romaji = "n" } ] )
-    , ( "abc", Err "Failed to group word 'abc' by mora\n. Inner error: Failed to find romaji for 'a'" )
+    , ( "abc", Err "Failed to group word 'abc' by mora\n. Inner error: Failed to find romaji for 'c'" )
     , ( "とっきょちょう"
       , Ok
             [ { mora = "と", romaji = "to" }
@@ -49,28 +49,26 @@ cases =
 
 suite : Test
 suite =
-    describe "Get romaji per mora in word"
-        (List.map
-            (\( input, expected ) ->
-                test input <|
-                    \_ ->
-                        groupByMora input
-                            |> Expect.equal expected
+    describe "Convert words to list of mora and romaji representation"
+        [ describe "Get romaji per mora in word"
+            (List.map
+                (\( input, expected ) ->
+                    test input <|
+                        \_ ->
+                            groupByMora input
+                                |> Expect.equal expected
+                )
+                cases
             )
-            cases
-        )
-
-
-suite2 : Test
-suite2 =
-    describe "No word should fail to be grouped by mora"
-        (Array.indexedMap
-            (\i ->
-                \{ normalized } ->
-                    -- Multiples of the same word can appear as a verb or a noun
-                    -- so we append the index to avoid "same test name error"
-                    test (String.fromInt i ++ ": " ++ normalized) <| \_ -> groupByMora normalized |> Expect.ok
+        , describe "No word should fail to be grouped by mora"
+            (Array.indexedMap
+                (\i ->
+                    \{ normalized } ->
+                        -- Multiples of the same word can appear as a verb or a noun
+                        -- so we append the index to avoid "same test name error"
+                        test (String.fromInt i ++ ": " ++ normalized) <| \_ -> groupByMora normalized |> Expect.ok
+                )
+                words
+                |> Array.toList
             )
-            words
-            |> Array.toList
-        )
+        ]

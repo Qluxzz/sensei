@@ -269,112 +269,128 @@ type alias CharacterMapping =
     }
 
 
+specialCharacters : { doubleFollowingConsonant : List String, combo : List String }
+specialCharacters =
+    { doubleFollowingConsonant =
+        [ "っ", "ッ" ]
+    , combo =
+        [ "ャ", "ュ", "ョ", "ゃ", "ゅ", "ょ" ]
+    }
+
+
 {-| Converts a word in hiragana/katakana to a list of moras and their romaji equivalence
 -}
 groupByMora : String -> Result String (List CharacterMapping)
 groupByMora input =
-    Result.mapError (\e -> "Failed to group word '" ++ input ++ "' by mora\n. Inner error: " ++ e) (groupByMoraHelper [] (String.toList input))
+    let
+        moras =
+            groupByMoraHelper [] input
+
+        res : Result String (List CharacterMapping)
+        res =
+            List.foldl
+                (\moraType ->
+                    \acc ->
+                        case acc of
+                            Ok acc2 ->
+                                case getMoraByType moraType of
+                                    Just str ->
+                                        Ok ({ mora = getMoraString moraType, romaji = str } :: acc2)
+
+                                    Nothing ->
+                                        Err ("Failed to find romaji for '" ++ getMoraString moraType ++ "'")
+
+                            Err _ ->
+                                acc
+                )
+                (Ok [])
+                moras
+    in
+    Result.mapError (\e -> "Failed to group word '" ++ input ++ "' by mora\n. Inner error: " ++ e) res
 
 
-groupByMoraHelper : List CharacterMapping -> List Char -> Result String (List CharacterMapping)
+groupByMoraHelper : List MoraType -> String -> List MoraType
 groupByMoraHelper acc input =
-    case input of
-        'ッ' :: second :: third :: rest ->
-            -- The first char of the mora should be duplicated
-            case Dict.get (String.fromChar second ++ String.fromChar third) hiraganaKatakanaToRomaji of
-                Just mora ->
-                    case String.uncons mora of
-                        Just ( a, b ) ->
-                            groupByMoraHelper (acc ++ [ { mora = "ッ" ++ String.fromChar second ++ String.fromChar third, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) rest
+    if String.isEmpty input then
+        acc
 
-                        Nothing ->
-                            Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ String.fromChar third ++ "'"
+    else
+        let
+            moraType =
+                if List.member (String.left 1 input) specialCharacters.doubleFollowingConsonant then
+                    if List.member (input |> String.dropLeft 2 |> String.left 1) specialCharacters.combo then
+                        DoubleConsonantAndCombo (String.left 3 input)
 
-                Nothing ->
-                    case Dict.get (String.fromChar second) hiraganaKatakanaToRomaji of
-                        Just mora ->
-                            case String.uncons mora of
-                                Just ( a, b ) ->
-                                    groupByMoraHelper (acc ++ [ { mora = "っ" ++ String.fromChar second, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) (third :: rest)
+                    else
+                        DoubleConsonant (String.left 2 input)
 
-                                Nothing ->
-                                    Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ "'"
+                else if List.member (input |> String.dropLeft 1 |> String.left 1) specialCharacters.combo then
+                    Combo (String.left 2 input)
 
-                        Nothing ->
-                            Err <| "Failed to find romaji for '" ++ String.fromChar second ++ "'"
+                else
+                    Single (String.left 1 input)
 
-        'っ' :: second :: third :: rest ->
-            -- The first char of the mora should be duplicated
-            case Dict.get (String.fromChar second ++ String.fromChar third) hiraganaKatakanaToRomaji of
-                Just mora ->
-                    case String.uncons mora of
-                        Just ( a, b ) ->
-                            groupByMoraHelper (acc ++ [ { mora = "っ" ++ String.fromChar second ++ String.fromChar third, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) rest
+            dropAmount =
+                case moraType of
+                    Single _ ->
+                        1
 
-                        Nothing ->
-                            Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ String.fromChar third ++ "'"
+                    DoubleConsonant _ ->
+                        2
 
-                Nothing ->
-                    case Dict.get (String.fromChar second) hiraganaKatakanaToRomaji of
-                        Just mora ->
-                            case String.uncons mora of
-                                Just ( a, b ) ->
-                                    groupByMoraHelper (acc ++ [ { mora = "っ" ++ String.fromChar second, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) (third :: rest)
+                    Combo _ ->
+                        2
 
-                                Nothing ->
-                                    Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ "'"
+                    DoubleConsonantAndCombo _ ->
+                        3
+        in
+        groupByMoraHelper (moraType :: acc) (String.dropLeft dropAmount input)
 
-                        Nothing ->
-                            Err <| "Failed to find romaji for '" ++ String.fromChar second ++ "'"
 
-        'っ' :: second :: rest ->
-            -- The first char of the mora should be duplicated
-            case Dict.get (String.fromChar second) hiraganaKatakanaToRomaji of
-                Just mora ->
-                    case String.uncons mora of
-                        Just ( a, b ) ->
-                            groupByMoraHelper (acc ++ [ { mora = "っ" ++ String.fromChar second, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) rest
+type MoraType
+    = Single String -- い
+    | DoubleConsonant String -- っと
+    | Combo String -- きゅ
+    | DoubleConsonantAndCombo String -- っきょ
 
-                        Nothing ->
-                            Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ "'"
 
-                Nothing ->
-                    Err <| "Failed to find romaji for '" ++ String.fromChar second ++ "'"
+getMoraByType : MoraType -> Maybe String
+getMoraByType type_ =
+    case type_ of
+        Single str ->
+            Dict.get str hiraganaKatakanaToRomaji
 
-        'ッ' :: second :: rest ->
-            -- The first char of the mora should be duplicated
-            case Dict.get (String.fromChar second) hiraganaKatakanaToRomaji of
-                Just mora ->
-                    case String.uncons mora of
-                        Just ( a, b ) ->
-                            groupByMoraHelper (acc ++ [ { mora = "ッ" ++ String.fromChar second, romaji = String.fromChar a ++ String.fromChar a ++ b } ]) rest
+        Combo str ->
+            Dict.get str hiraganaKatakanaToRomaji
 
-                        Nothing ->
-                            Err <| "Failed to split mora apart for '" ++ String.fromChar second ++ "'"
+        DoubleConsonant str ->
+            case String.uncons str of
+                Just ( _, rest ) ->
+                    Dict.get rest hiraganaKatakanaToRomaji |> Maybe.map (\mora -> String.left 1 mora ++ mora)
 
-                Nothing ->
-                    Err <| "Failed to find romaji for '" ++ String.fromChar second ++ "'"
+                _ ->
+                    Nothing
 
-        first :: second :: rest ->
-            case Dict.get (String.fromChar first ++ String.fromChar second) hiraganaKatakanaToRomaji of
-                Just match ->
-                    groupByMoraHelper (acc ++ [ { mora = String.fromChar first ++ String.fromChar second, romaji = match } ]) rest
+        DoubleConsonantAndCombo str ->
+            case String.uncons str of
+                Just ( _, rest ) ->
+                    Dict.get rest hiraganaKatakanaToRomaji |> Maybe.map (\mora -> String.left 1 mora ++ mora)
 
-                Nothing ->
-                    case Dict.get (String.fromChar first) hiraganaKatakanaToRomaji of
-                        Just match ->
-                            groupByMoraHelper (acc ++ [ { mora = String.fromChar first, romaji = match } ]) (second :: rest)
+                _ ->
+                    Nothing
 
-                        Nothing ->
-                            Err <| "Failed to find romaji for '" ++ String.fromChar first ++ "'"
 
-        first :: _ ->
-            case Dict.get (String.fromChar first) hiraganaKatakanaToRomaji of
-                Just match ->
-                    Ok <| acc ++ [ { mora = String.fromChar first, romaji = match } ]
+getMoraString : MoraType -> String
+getMoraString type_ =
+    case type_ of
+        Single str ->
+            str
 
-                Nothing ->
-                    Err <| "Failed to find romaji for '" ++ String.fromChar first ++ "'"
+        DoubleConsonant str ->
+            str
 
-        [] ->
-            Ok acc
+        Combo str ->
+            str
+
+        DoubleConsonantAndCombo str ->
+            str
