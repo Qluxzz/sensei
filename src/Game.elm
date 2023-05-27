@@ -1,9 +1,11 @@
 module Game exposing (Model, Msg(..), init, update, view)
 
 import Html exposing (Html, button, div, form, li, p, span, text, ul)
-import Html.Attributes exposing (autofocus, class, disabled, style, type_, value)
+import Html.Attributes exposing (autofocus, class, classList, disabled, style, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
+import Platform.Cmd as Cmd
 import Romaji exposing (CharacterMapping, groupByMora)
+import Set exposing (Set)
 import Tooltip exposing (withTooltip)
 import Words exposing (Word)
 
@@ -26,9 +28,10 @@ init word =
             (\characterMapping ->
                 ( { word = word
                   , attempt = cleanAttempt
-                  , state = Romaji
+                  , state = WhatDoesWordMean -- Romaji
                   , characterMapping = characterMapping
                   , romaji = List.map .romaji characterMapping |> String.concat
+                  , showGlossaryAtIndex = Set.empty
                   }
                 , Cmd.none
                 )
@@ -47,6 +50,7 @@ type alias Model =
     , romaji : String
     , attempt : Attempt
     , state : State
+    , showGlossaryAtIndex : Set Int
     }
 
 
@@ -61,6 +65,7 @@ type Msg
     | Input String
     | NextWord
     | Continue
+    | RevealGlossaryWord Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -133,6 +138,9 @@ update msg model =
                 WhatDoesWordMean ->
                     ( model, Cmd.none )
 
+        RevealGlossaryWord index ->
+            ( { model | showGlossaryAtIndex = Set.insert index model.showGlossaryAtIndex }, Cmd.none )
+
         -- Handled by Main.elm
         NextWord ->
             ( model, Cmd.none )
@@ -191,7 +199,12 @@ view model =
 
             WhatDoesWordMean ->
                 [ div [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.normalized ++ ")" ] ]
-                , div [ style "flex-grow" "1" ] []
+                , div [ style "overflow" "auto" ]
+                    [ ul [ class "hidden-glossary-list" ] (List.indexedMap (\i -> \meaning -> li [ classList [ ( "visible", Set.member i model.showGlossaryAtIndex ) ], onClick (RevealGlossaryWord i) ] [ text meaning ]) model.word.glossary)
+                    ]
+                , div
+                    [ style "flex-grow" "1" ]
+                    []
                 , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
                     [ p [] [ text <| "Enter one of the glossary words for " ++ model.word.str ]
                     , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []

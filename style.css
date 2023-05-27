@@ -161,3 +161,11 @@ header {
   opacity: 1;
   transform: translateY(-4px);
 }
+
+.hidden-glossary-list>li:not(:first-child) {
+  margin-top: 10px;
+}
+
+.hidden-glossary-list>li:not(.visible) {
+  background-color: #000;
+}
