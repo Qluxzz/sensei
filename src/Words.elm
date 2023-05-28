@@ -5,7 +5,7 @@ import Array exposing (Array)
 
 type alias Word =
     { str : String -- This is the "real" word which might contain kanji
-    , normalized : String -- This is the same word but written in hiragana and or katakana
+    , kana : String -- This is the same word but written in hiragana and or katakana
     , glossary : List String -- The meaning(s) of the word
     }
 

@@ -23,7 +23,7 @@ cleanAttempt =
 
 init : Word -> Result.Result String ( Model, Cmd Msg )
 init word =
-    groupByMora word.normalized
+    groupByMora word.kana
         |> Result.map
             (\characterMapping ->
                 ( { word = word
@@ -68,6 +68,11 @@ type Msg
     | RevealGlossaryWord Int
 
 
+normalizeInput : String -> String
+normalizeInput =
+    String.toLower >> String.trim
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
@@ -87,7 +92,7 @@ update msg model =
                 Romaji ->
                     ( { model
                         | attempt =
-                            if String.toLower attempt.input == model.romaji then
+                            if normalizeInput attempt.input == model.romaji then
                                 correctAttempt
 
                             else
@@ -99,7 +104,7 @@ update msg model =
                 RomajiToHiragana ->
                     ( { model
                         | attempt =
-                            if String.toLower attempt.input == model.word.normalized then
+                            if normalizeInput attempt.input == model.word.kana then
                                 correctAttempt
 
                             else
@@ -111,7 +116,7 @@ update msg model =
                 WhatDoesWordMean ->
                     ( { model
                         | attempt =
-                            if List.any ((==) (String.toLower attempt.input)) model.word.glossary then
+                            if List.any ((==) (normalizeInput attempt.input)) model.word.glossary then
                                 correctAttempt
 
                             else
@@ -156,7 +161,7 @@ view model =
     div [ class "content" ]
         (case model.state of
             Romaji ->
-                [ p [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.normalized ++ ")" ] ]
+                [ p [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.kana ++ ")" ] ]
                 , text "It means:"
                 , div [ style "overflow" "auto" ]
                     [ ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.glossary)
@@ -198,7 +203,7 @@ view model =
                 ]
 
             WhatDoesWordMean ->
-                [ div [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.normalized ++ ")" ] ]
+                [ div [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.kana ++ ")" ] ]
                 , div [ style "overflow" "auto" ]
                     [ ul [ class "hidden-glossary-list" ] (List.indexedMap (\i -> \meaning -> li [ classList [ ( "visible", Set.member i model.showGlossaryAtIndex ) ], onClick (RevealGlossaryWord i) ] [ text meaning ]) model.word.glossary)
                     ]

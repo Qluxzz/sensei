@@ -63,10 +63,10 @@ suite =
         , describe "No word should fail to be grouped by mora"
             (Array.indexedMap
                 (\i ->
-                    \{ normalized } ->
+                    \{ kana } ->
                         -- Multiples of the same word can appear as a verb or a noun
                         -- so we append the index to avoid "same test name error"
-                        test (String.fromInt i ++ ": " ++ normalized) <| \_ -> groupByMora normalized |> Expect.ok
+                        test (String.fromInt i ++ ": " ++ kana) <| \_ -> groupByMora kana |> Expect.ok
                 )
                 words
                 |> Array.toList
