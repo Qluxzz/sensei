@@ -205,7 +205,26 @@ view model =
             WhatDoesWordMean ->
                 [ div [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.kana ++ ")" ] ]
                 , div [ style "overflow" "auto" ]
-                    [ ul [ class "hidden-glossary-list" ] (List.indexedMap (\i -> \meaning -> li [ classList [ ( "visible", Set.member i model.showGlossaryAtIndex ) ], onClick (RevealGlossaryWord i) ] [ text meaning ]) model.word.glossary)
+                    [ ul [ class "hidden-glossary-list" ]
+                        (List.indexedMap
+                            (\i ->
+                                \meaning ->
+                                    let
+                                        visible =
+                                            Set.member i model.showGlossaryAtIndex
+                                    in
+                                    li [ classList [ ( "visible", visible ) ], onClick (RevealGlossaryWord i) ]
+                                        [ text
+                                            (if visible then
+                                                meaning
+
+                                             else
+                                                ""
+                                            )
+                                        ]
+                            )
+                            model.word.glossary
+                        )
                     ]
                 , div
                     [ style "flex-grow" "1" ]

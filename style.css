@@ -169,3 +169,10 @@ header {
 .hidden-glossary-list>li:not(.visible) {
   background-color: #000;
 }
+
+.hidden-glossary-list>li:not(.visible):hover:after {
+  position: absolute;
+  content: "Click to reveal";
+  padding: 0 5px;
+  color: #fff;
+}
