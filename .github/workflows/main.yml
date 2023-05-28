@@ -4,16 +4,36 @@ on:
       - "main"
 
 jobs:
-  build:
-    name: Build and minimize Elm
+  test:
+    name: Run test suite
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: jorelali/setup-elm@v5
+        with:
+          elm-version: 0.19.1
+
+      - name: Run elm tests
+        run: npx elm-test --report="junit" > test-results.xml
+
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "test-results.xml"
+        if: always()
+  build:
+    name: Build and minimize Elm
+    runs-on: ubuntu-22.04
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: jorelali/setup-elm@v5
+        with:
+          elm-version: 0.19.1
       - name: Compile Elm to JS
-        run: |
-          npx elm make src/Main.elm --optimize --output elm.js
+        run: elm make src/Main.elm --optimize --output elm.js
 
       - name: Tree shake and minimize compiled js
         run: |

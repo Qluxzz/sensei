@@ -168,8 +168,8 @@ view model =
                     ]
                 , div [ style "flex-grow" "1" ] []
                 , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ p [] ((text <| "Please write ") :: List.map (\{ mora, romaji } -> withTooltip mora romaji) model.characterMapping ++ [ text " in romaji" ])
-                    , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
+                    [ Html.label [ Html.Attributes.for "input-field" ] ((text <| "Please write ") :: List.map (\{ mora, romaji } -> withTooltip mora romaji) model.characterMapping ++ [ text " in romaji" ])
+                    , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
                     , case model.attempt.result of
                         Correct ->
                             button [ type_ "button", onClick Continue ] [ text "Continue!" ]
@@ -187,8 +187,8 @@ view model =
                 [ div [] [ text <| "The word in romaji is " ++ model.romaji ]
                 , div [ style "flex-grow" "1" ] []
                 , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ p [] (text "Enter hiragana for " :: List.map (\{ mora, romaji } -> withTooltip romaji mora) model.characterMapping)
-                    , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
+                    [ Html.label [ Html.Attributes.for "input-field" ] (text "Enter hiragana for " :: List.map (\{ mora, romaji } -> withTooltip romaji mora) model.characterMapping)
+                    , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
                     , case model.attempt.result of
                         Correct ->
                             button [ type_ "button", onClick Continue ] [ text "Continue!" ]
@@ -230,8 +230,8 @@ view model =
                     [ style "flex-grow" "1" ]
                     []
                 , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ p [] [ text <| "Enter one of the glossary words for " ++ model.word.str ]
-                    , Html.input [ type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
+                    [ Html.label [ Html.Attributes.for "input-field" ] [ text <| "Enter one of the glossary words for " ++ model.word.str ]
+                    , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
                     , case model.attempt.result of
                         Correct ->
                             button [ type_ "button", onClick NextWord ] [ text "Next word!" ]
