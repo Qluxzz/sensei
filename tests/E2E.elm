@@ -34,7 +34,14 @@ gameLoopTest =
                 Ok modelAndCmd ->
                     ProgramTest.createElement
                         { init = \_ -> modelAndCmd
-                        , update = Game.update
+                        , update =
+                            \msg ->
+                                \model ->
+                                    let
+                                        ( updatedModel, updatedMsg, _ ) =
+                                            Game.update msg model
+                                    in
+                                    ( updatedModel, updatedMsg )
                         , view = Game.view
                         }
                         -- Romaji stage

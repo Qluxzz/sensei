@@ -1,4 +1,4 @@
-module Game exposing (Model, Msg(..), init, update, view)
+module Game exposing (Model, Msg, OutMsg(..), init, update, view)
 
 import Html exposing (Html, button, div, form, li, p, span, text, ul)
 import Html.Attributes exposing (autofocus, class, classList, disabled, style, type_, value)
@@ -60,10 +60,13 @@ type alias Attempt =
     }
 
 
+type OutMsg
+    = NextWord
+
+
 type Msg
     = Submit
     | Input String
-    | NextWord
     | Continue
     | RevealGlossaryWord Int
 
@@ -73,7 +76,7 @@ normalizeInput =
     String.toLower >> String.trim
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, Maybe OutMsg )
 update msg model =
     let
         attempt =
@@ -99,6 +102,7 @@ update msg model =
                                 failedAttempt
                       }
                     , Cmd.none
+                    , Nothing
                     )
 
                 RomajiToHiragana ->
@@ -111,6 +115,7 @@ update msg model =
                                 failedAttempt
                       }
                     , Cmd.none
+                    , Nothing
                     )
 
                 WhatDoesWordMean ->
@@ -123,6 +128,7 @@ update msg model =
                                 failedAttempt
                       }
                     , Cmd.none
+                    , Nothing
                     )
 
         Input str ->
@@ -130,25 +136,21 @@ update msg model =
                 updatedAttempt =
                     { attempt | input = str }
             in
-            ( { model | attempt = updatedAttempt }, Cmd.none )
+            ( { model | attempt = updatedAttempt }, Cmd.none, Nothing )
 
         Continue ->
             case model.state of
                 Romaji ->
-                    ( { model | state = RomajiToHiragana, attempt = cleanAttempt }, Cmd.none )
+                    ( { model | state = RomajiToHiragana, attempt = cleanAttempt }, Cmd.none, Nothing )
 
                 RomajiToHiragana ->
-                    ( { model | state = WhatDoesWordMean, attempt = cleanAttempt }, Cmd.none )
+                    ( { model | state = WhatDoesWordMean, attempt = cleanAttempt }, Cmd.none, Nothing )
 
                 WhatDoesWordMean ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Just NextWord )
 
         RevealGlossaryWord index ->
-            ( { model | showGlossaryAtIndex = Set.insert index model.showGlossaryAtIndex }, Cmd.none )
-
-        -- Handled by Main.elm
-        NextWord ->
-            ( model, Cmd.none )
+            ( { model | showGlossaryAtIndex = Set.insert index model.showGlossaryAtIndex }, Cmd.none, Nothing )
 
 
 view : Model -> Html Msg
@@ -234,7 +236,7 @@ view model =
                     , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
                     , case model.attempt.result of
                         Correct ->
-                            button [ type_ "button", onClick NextWord ] [ text "Next word!" ]
+                            button [] [ text "Next word!" ]
 
                         Incorrect ->
                             button [] [ text "Submit" ]

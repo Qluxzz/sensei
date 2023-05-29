@@ -73,14 +73,15 @@ update msg model =
             case msg of
                 GameMsg gameMsg ->
                     let
-                        ( updatedModel, cmd ) =
+                        ( updatedModel, cmd, outMsg ) =
                             Game.update gameMsg gameModel
                     in
-                    if gameMsg == Game.NextWord then
-                        ( { state = Loading }, randomWordIndex )
+                    case outMsg of
+                        Just Game.NextWord ->
+                            ( { state = Loading }, randomWordIndex )
 
-                    else
-                        ( { state = Playing updatedModel }, Cmd.map GameMsg cmd )
+                        Nothing ->
+                            ( { state = Playing updatedModel }, Cmd.map GameMsg cmd )
 
                 _ ->
                     ( model, Cmd.none )
