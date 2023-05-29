@@ -1,7 +1,7 @@
 module Game exposing (Model, Msg, OutMsg(..), init, update, view)
 
 import Html exposing (Html, button, div, form, li, p, span, text, ul)
-import Html.Attributes exposing (autofocus, class, classList, disabled, style, type_, value)
+import Html.Attributes exposing (autofocus, class, classList, disabled, id, style, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Platform.Cmd as Cmd
 import Romaji exposing (CharacterMapping, groupByMora)
@@ -215,7 +215,7 @@ view model =
                                         visible =
                                             Set.member i model.showGlossaryAtIndex
                                     in
-                                    li [ classList [ ( "visible", visible ) ], onClick (RevealGlossaryWord i) ]
+                                    li [ id <| "glossary-item-" ++ String.fromInt (i + 1), classList [ ( "visible", visible ) ], onClick (RevealGlossaryWord i) ]
                                         [ text
                                             (if visible then
                                                 meaning
