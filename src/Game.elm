@@ -236,7 +236,7 @@ view model =
                     , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
                     , case model.attempt.result of
                         Correct ->
-                            button [] [ text "Next word!" ]
+                            button [ type_ "button", onClick Continue ] [ text "Next word!" ]
 
                         Incorrect ->
                             button [] [ text "Submit" ]
