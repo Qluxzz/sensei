@@ -163,7 +163,11 @@ view model =
     div [ class "content" ]
         (case model.state of
             Romaji ->
-                [ Html.h1 [ style "font-size" ("calc(100vw / " ++ (String.fromInt <| String.length model.word.str + 1) ++ ")"), style "text-align" "center" ] [ text model.word.str ]
+                let
+                    letters =
+                        String.length model.word.str
+                in
+                [ Html.h1 [ style "font-size" ("min(calc(100vw / " ++ String.fromInt letters ++ " - 20px), calc(50cqb / " ++ String.fromInt letters ++ "))"), style "text-align" "center" ] [ text model.word.str ]
                 , p [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.kana ++ ")" ] ]
                 , p [] [ text "It means:" ]
                 , div [ style "overflow" "auto" ]
