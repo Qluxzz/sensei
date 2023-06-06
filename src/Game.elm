@@ -167,7 +167,7 @@ view model =
                     letters =
                         String.length model.word.str
                 in
-                [ Html.h1 [ style "font-size" ("min(calc(100vw / " ++ String.fromInt letters ++ " - 20px), calc(50cqb / " ++ String.fromInt letters ++ "))"), style "text-align" "center", style "line-height" "1" ] [ text model.word.str ]
+                [ Html.h1 [ style "font-size" ("min(calc(100cqw / " ++ String.fromInt letters ++ "), 50cqw)"), style "text-align" "center", style "line-height" "1" ] [ text model.word.str ]
                 , p [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.kana ++ ")" ] ]
                 , p [] [ text "It means:" ]
                 , div [ style "overflow" "auto" ]
