@@ -121,7 +121,7 @@ update msg model =
                 WhatDoesWordMean ->
                     ( { model
                         | attempt =
-                            if List.any ((==) (normalizeInput attempt.input)) model.word.glossary then
+                            if List.any (\gloss -> normalizeInput gloss == normalizeInput model.attempt.input) model.word.glossary then
                                 correctAttempt
 
                             else
