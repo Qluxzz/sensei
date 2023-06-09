@@ -163,11 +163,7 @@ view model =
     div [ class "content" ]
         (case model.state of
             Romaji ->
-                let
-                    letters =
-                        String.length model.word.str
-                in
-                [ Html.h1 [ style "font-size" ("min(calc(100cqw / " ++ String.fromInt letters ++ " - 10px), calc(50cqw - 10px))"), style "text-align" "center", style "line-height" "1" ] [ text model.word.str ]
+                [ kanjiDisplay model.word.str
                 , p [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.kana ++ ")" ] ]
                 , p [] [ text "It means:" ]
                 , div [ style "overflow" "auto" ]
@@ -191,7 +187,8 @@ view model =
                 ]
 
             RomajiToHiragana ->
-                [ div [] [ text <| "The word in romaji is " ++ model.romaji ]
+                [ kanjiDisplay model.word.str
+                , div [] [ text <| "The word in romaji is " ++ model.romaji ]
                 , div [ style "flex-grow" "1" ] []
                 , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
                     [ Html.label [ Html.Attributes.for "input-field" ] (text "Enter hiragana for " :: List.map (\{ mora, romaji } -> withTooltip romaji mora) model.characterMapping)
@@ -210,7 +207,8 @@ view model =
                 ]
 
             WhatDoesWordMean ->
-                [ div [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.kana ++ ")" ] ]
+                [ kanjiDisplay model.word.str
+                , div [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.kana ++ ")" ] ]
                 , div [ style "overflow" "auto" ]
                     [ ul [ class "hidden-glossary-list" ]
                         (List.indexedMap
@@ -237,7 +235,7 @@ view model =
                     [ style "flex-grow" "1" ]
                     []
                 , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ Html.label [ Html.Attributes.for "input-field" ] [ text <| "Enter one of the glossary words for " ++ model.word.str ]
+                    [ Html.label [ Html.Attributes.for "input-field" ] [ text <| "Enter one of the glossary words" ]
                     , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
                     , case model.attempt.result of
                         Correct ->
@@ -252,6 +250,20 @@ view model =
                 , resultView attempt.result
                 ]
         )
+
+
+kanjiDisplay : String -> Html msg
+kanjiDisplay kanji =
+    let
+        letters =
+            String.length kanji
+    in
+    Html.h1
+        [ style "font-size" ("min(calc(100cqw / " ++ String.fromInt letters ++ " - 10px), calc(50cqw - 10px))")
+        , style "text-align" "center"
+        , style "line-height" "1"
+        ]
+        [ text kanji ]
 
 
 resultView : Result -> Html msg
