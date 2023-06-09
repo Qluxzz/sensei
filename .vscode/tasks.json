@@ -4,7 +4,7 @@
         {
             "label": "watch elm client",
             "type": "shell",
-            "command": "elm-live src/Main.elm -- --output=elm.js --debug",
+            "command": "npx elm-live src/Main.elm -- --output=elm.js --debug",
             "problemMatcher": [],
             "runOptions": {
                 "runOn": "folderOpen"
