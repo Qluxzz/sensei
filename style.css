@@ -109,6 +109,11 @@ button {
   color: #000;
 }
 
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
 input[type=text] {
   border-radius: 10px;
   border: 2px solid #222;

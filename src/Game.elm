@@ -181,7 +181,7 @@ view model =
                             button [] [ text "Submit" ]
 
                         Undecided ->
-                            button [] [ text "Submit" ]
+                            button [ disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
                     ]
                 , resultView attempt.result
                 ]
@@ -201,7 +201,7 @@ view model =
                             button [] [ text "Submit" ]
 
                         Undecided ->
-                            button [] [ text "Submit" ]
+                            button [ disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
                     ]
                 , resultView attempt.result
                 ]
@@ -245,7 +245,7 @@ view model =
                             button [] [ text "Submit" ]
 
                         Undecided ->
-                            button [] [ text "Submit" ]
+                            button [ disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
                     ]
                 , resultView attempt.result
                 ]
