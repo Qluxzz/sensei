@@ -90,7 +90,7 @@ def should_skip(child: ET.Element) -> bool:
             Words in the first 12,000 in that file are marked "news1" and words 
             in the second 12,000 are marked "news2"
         """
-        if kePri.text in ["news1", "news2"]:
+        if kePri.text in ["news1"]:
             return False
 
     return True
