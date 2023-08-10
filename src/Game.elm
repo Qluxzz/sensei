@@ -90,12 +90,15 @@ update msg model =
 
                 correctAttempt =
                     { attempt | result = Correct }
+
+                normalizedInput =
+                    normalizeInput attempt.input
             in
             case model.state of
                 Romaji ->
                     ( { model
                         | attempt =
-                            if normalizeInput attempt.input == model.romaji then
+                            if normalizedInput == model.romaji then
                                 correctAttempt
 
                             else
@@ -108,7 +111,7 @@ update msg model =
                 RomajiToHiragana ->
                     ( { model
                         | attempt =
-                            if normalizeInput attempt.input == model.word.kana then
+                            if normalizedInput == model.word.kana then
                                 correctAttempt
 
                             else
@@ -121,7 +124,7 @@ update msg model =
                 WhatDoesWordMean ->
                     ( { model
                         | attempt =
-                            if List.any (\gloss -> normalizeInput gloss == normalizeInput model.attempt.input) model.word.glossary then
+                            if List.any (normalizeInput >> (==) normalizedInput) model.word.glossary then
                                 correctAttempt
 
                             else
