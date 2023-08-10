@@ -1,4 +1,4 @@
-module Game exposing (Model, Msg, OutMsg(..), init, update, view)
+module Game exposing (Model, Msg, OutMsg(..), Result(..), getResultPerMora, init, update, view)
 
 import Html exposing (Html, button, div, form, li, p, span, text, ul)
 import Html.Attributes exposing (autofocus, class, classList, disabled, id, style, type_, value)
@@ -62,6 +62,11 @@ type alias Attempt =
 
 type OutMsg
     = NextWord
+    | RomajiAttemptResult (List ( Mora, Result )) -- For each mora, did the user guess it correctly?
+
+
+type alias Mora =
+    String
 
 
 type Msg
@@ -105,7 +110,7 @@ update msg model =
                                 failedAttempt
                       }
                     , Cmd.none
-                    , Nothing
+                    , Just (RomajiAttemptResult (getResultPerMora normalizedInput model.characterMapping))
                     )
 
                 RomajiToHiragana ->
@@ -257,12 +262,8 @@ view model =
 
 kanjiDisplay : String -> Html msg
 kanjiDisplay kanji =
-    let
-        letters =
-            String.length kanji
-    in
     Html.h1
-        [ style "font-size" ("min(calc(100cqw / " ++ String.fromInt letters ++ " - 10px), calc(50cqw - 10px))")
+        [ style "font-size" ("min(calc(100cqw / " ++ String.fromInt (String.length kanji) ++ " - 10px), calc(50cqw - 10px))")
         , style "text-align" "center"
         , style "line-height" "1"
         ]
@@ -282,3 +283,36 @@ resultView res =
             Undecided ->
                 text ""
         ]
+
+
+{-| Validates per mora if correct or not
+-}
+getResultPerMora : String -> List CharacterMapping -> List ( Mora, Result )
+getResultPerMora attempt correct =
+    List.foldr
+        (\character ->
+            \( att, acc ) ->
+                let
+                    length =
+                        String.length character.romaji
+
+                    chars =
+                        String.right length att
+
+                    remaining =
+                        String.dropRight length att
+                in
+                ( remaining
+                , ( character.mora
+                  , if character.romaji == chars then
+                        Correct
+
+                    else
+                        Incorrect
+                  )
+                    :: acc
+                )
+        )
+        ( attempt, [] )
+        correct
+        |> Tuple.second

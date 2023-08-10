@@ -11586,7 +11586,7 @@ words =
 """
         |> String.lines
         |> List.map (removeFirstAndLastCharacter >> String.split "','")
-        |> List.map parseToWord
+        |> List.filterMap parseToWord
         |> Array.fromList
 
 
@@ -11595,17 +11595,18 @@ amountOfWords =
     Array.length words
 
 
-parseToWord : List String -> Word
+parseToWord : List String -> Maybe Word
 parseToWord parts =
     case parts of
-        word :: normalized :: dictionary :: _ ->
-            Word
-                word
-                normalized
-                (dictionary |> String.replace "''" "'" |> String.split "|")
+        word :: normalized :: glossary :: _ ->
+            Just <|
+                Word
+                    word
+                    normalized
+                    (glossary |> String.replace "''" "'" |> String.split "|")
 
         _ ->
-            Word "" "" []
+            Nothing
 
 
 removeFirstAndLastCharacter : String -> String
