@@ -1,4 +1,4 @@
-module Game exposing (Model, Msg, OutMsg(..), Result(..), getResultPerMora, init, update, view)
+module Game exposing (Model, MoraResult(..), Msg, OutMsg(..), getResultPerMora, init, update, view)
 
 import Html exposing (Html, button, div, form, li, p, span, text, ul)
 import Html.Attributes exposing (autofocus, class, classList, disabled, id, style, type_, value)
@@ -62,11 +62,7 @@ type alias Attempt =
 
 type OutMsg
     = NextWord
-    | RomajiAttemptResult (List ( Mora, Result )) -- For each mora, did the user guess it correctly?
-
-
-type alias Mora =
-    String
+    | RomajiAttemptResult (List ( String, MoraResult )) -- For each mora, did the user guess it correctly?
 
 
 type Msg
@@ -285,9 +281,14 @@ resultView res =
         ]
 
 
+type MoraResult
+    = CorrectMora
+    | IncorrectMora
+
+
 {-| Validates per mora if correct or not
 -}
-getResultPerMora : String -> List CharacterMapping -> List ( Mora, Result )
+getResultPerMora : String -> List CharacterMapping -> List ( String, MoraResult )
 getResultPerMora attempt correct =
     List.foldr
         (\character ->
@@ -305,10 +306,10 @@ getResultPerMora attempt correct =
                 ( remaining
                 , ( character.mora
                   , if character.romaji == chars then
-                        Correct
+                        CorrectMora
 
                     else
-                        Incorrect
+                        IncorrectMora
                   )
                     :: acc
                 )

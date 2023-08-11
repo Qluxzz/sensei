@@ -8,7 +8,9 @@ import Html exposing (Html, div, header, text)
 import Html.Attributes exposing (class)
 import Json.Decode
 import Json.Encode
+import Maybe
 import Random
+import Random.Extra
 import Romaji exposing (groupByMora)
 import Words exposing (amountOfWords, words)
 
@@ -48,33 +50,26 @@ init flags =
     case flags.weights of
         Just weights ->
             let
-                sorted =
-                    sortWordsByWeight words weights
-
-                -- TODO: This should not return the same word every time,
-                -- keep track of which words the user have tried so they get some alternation
-                newWord =
-                    sorted
-                        |> List.head
-                        |> Result.fromMaybe "Failed to get word"
-                        |> Result.andThen Game.init
+                -- If all existing weights are at 1, meaning the user has guessed everything correctly
+                -- we just continue to randomize the next word
+                randomize =
+                    weights |> Dict.values |> List.all ((==) 1)
             in
-            case newWord of
-                Ok ( newGameModel, newGameCmd ) ->
-                    ( { state = Playing newGameModel, weights = weights }
-                    , Cmd.batch
-                        [ Cmd.map GameMsg newGameCmd
-                        ]
-                    )
+            if randomize then
+                ( { state = Loading, weights = weights }, randomWordIndex amountOfWords )
 
-                Err err ->
-                    ( { state = Failed err, weights = weights }, Cmd.none )
+            else
+                let
+                    ids =
+                        getIdsOfWordsUserShouldTrainOn words weights
+                in
+                ( { state = Loading, weights = weights }, randomIdFromList ids )
 
         Nothing ->
             ( { state = Loading
               , weights = flags.weights |> Maybe.withDefault Dict.empty
               }
-            , randomWordIndex
+            , randomWordIndex amountOfWords
             )
 
 
@@ -88,8 +83,6 @@ update msg model =
     case model.state of
         Loading ->
             case msg of
-                -- This should only happen once when the user first visits the page
-                -- After this we should have stored some weights data to give better words to the user
                 RandomWordIndex index ->
                     case
                         Array.get index words
@@ -116,7 +109,7 @@ update msg model =
                         Just (Game.RomajiAttemptResult result) ->
                             let
                                 updatedWeights =
-                                    updateWeights result model.weights
+                                    List.foldr updateWeight model.weights result
                             in
                             ( { model | state = Playing updatedModel, weights = updatedWeights }
                             , Cmd.batch
@@ -127,27 +120,20 @@ update msg model =
 
                         Just Game.NextWord ->
                             let
-                                sorted =
-                                    sortWordsByWeight words model.weights
-
-                                -- TODO: This should not return the same word every time,
-                                -- keep track of which words the user have tried so they get some alternation
-                                newWord =
-                                    sorted
-                                        |> List.head
-                                        |> Result.fromMaybe "Failed to get word"
-                                        |> Result.andThen Game.init
+                                -- If all existing weights are at 1, meaning the user nails all kanas
+                                -- we just continue to randomize the next word
+                                randomize =
+                                    model.weights |> Dict.values |> List.all ((==) 1)
                             in
-                            case newWord of
-                                Ok ( newGameModel, newGameCmd ) ->
-                                    ( { model | state = Playing newGameModel }
-                                    , Cmd.batch
-                                        [ Cmd.map GameMsg newGameCmd
-                                        ]
-                                    )
+                            if randomize then
+                                ( { model | state = Loading }, randomWordIndex amountOfWords )
 
-                                Err err ->
-                                    ( { model | state = Failed err }, Cmd.none )
+                            else
+                                let
+                                    ids =
+                                        getIdsOfWordsUserShouldTrainOn words model.weights
+                                in
+                                ( { model | state = Loading }, randomIdFromList ids )
 
                         Nothing ->
                             ( { model | state = Playing updatedModel }, Cmd.map GameMsg cmd )
@@ -230,25 +216,29 @@ weigh weights word =
         |> Result.withDefault 1.0
 
 
-sortWordsByWeight : Array.Array Words.Word -> Dict.Dict String Float -> List Words.Word
-sortWordsByWeight words weights =
+{-| Returns all words with a less than 1 ratio, meaning the user has failed some kana in the word
+-}
+getIdsOfWordsUserShouldTrainOn : Array.Array Words.Word -> Dict.Dict String Float -> List Int
+getIdsOfWordsUserShouldTrainOn words weights =
     words
-        |> Array.toList
-        |> List.map (\w -> ( weigh weights w.kana, w ))
-        |> List.sortBy Tuple.first
-        |> List.map Tuple.second
+        |> Array.toIndexedList
+        |> List.foldr
+            (\( id, word ) ->
+                \acc ->
+                    if weigh weights word.kana < 1 then
+                        id :: acc
 
-
-updateWeights : List ( String, Game.Result ) -> Dict.Dict String Float -> Dict.Dict String Float
-updateWeights results weights =
-    List.foldr (\res -> \acc -> updateWeight acc res) weights results
+                    else
+                        acc
+            )
+            []
 
 
 updateWeight :
-    Dict.Dict String Float
-    -> ( String, Game.Result )
+    ( String, Game.MoraResult )
     -> Dict.Dict String Float
-updateWeight weights ( kana, result ) =
+    -> Dict.Dict String Float
+updateWeight ( kana, result ) weights =
     Dict.update
         kana
         (\maybeExisting ->
@@ -256,30 +246,38 @@ updateWeight weights ( kana, result ) =
                 (case maybeExisting of
                     Just e ->
                         case result of
-                            Game.Correct ->
-                                min 1.0 (e + (e * 0.1))
+                            Game.CorrectMora ->
+                                min 1.0 (e + 0.1)
 
-                            Game.Incorrect ->
-                                max 0.0 (e - (e * 0.1))
-
-                            Game.Undecided ->
-                                e
+                            Game.IncorrectMora ->
+                                max 0.0 (e - 0.1)
 
                     Nothing ->
                         case result of
-                            Game.Correct ->
+                            Game.CorrectMora ->
                                 1.0
 
-                            Game.Incorrect ->
+                            Game.IncorrectMora ->
                                 0.1
-
-                            Game.Undecided ->
-                                1.0
                 )
         )
         weights
 
 
-randomWordIndex : Cmd Msg
-randomWordIndex =
-    Random.generate RandomWordIndex (Random.int 0 amountOfWords)
+randomWordIndex : Int -> Cmd Msg
+randomWordIndex amount =
+    Random.generate RandomWordIndex (Random.int 0 amount)
+
+
+randomIdFromList : List Int -> Cmd Msg
+randomIdFromList ids =
+    case ids of
+        [] ->
+            randomWordIndex amountOfWords
+
+        _ ->
+            Random.generate RandomWordIndex
+                (Random.Extra.sample ids
+                    -- This should never happen since we check if the list is empty before
+                    |> Random.map (Maybe.withDefault 0)
+                )

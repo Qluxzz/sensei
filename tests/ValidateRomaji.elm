@@ -6,19 +6,19 @@ import Romaji exposing (CharacterMapping)
 import Test exposing (Test, describe, test)
 
 
-cases : List ( ( String, List CharacterMapping ), List ( String, Game.Result ) )
+cases : List ( ( String, List CharacterMapping ), List ( String, Game.MoraResult ) )
 cases =
     [ ( ( "kanmen"
         , [ { mora = "か", romaji = "ka" }, { mora = "ん", romaji = "n" }, { mora = "も", romaji = "mo" }, { mora = "ん", romaji = "n" } ]
         )
-      , [ ( "か", Game.Correct ), ( "ん", Game.Correct ), ( "も", Game.Incorrect ), ( "ん", Game.Correct ) ]
+      , [ ( "か", Game.CorrectMora ), ( "ん", Game.CorrectMora ), ( "も", Game.IncorrectMora ), ( "ん", Game.CorrectMora ) ]
       )
     ]
 
 
 suite : Test
 suite =
-    describe "When user writes answer in romaji, split each mora and compare if correct or not"
+    describe "Validate attempt against correct per mora"
         (List.map
             (\( ( attempt, correct ), wanted ) ->
                 test ("Attempt " ++ attempt ++ " should yield " ++ Debug.toString wanted) <|
