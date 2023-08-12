@@ -245,12 +245,16 @@ updateWeight ( kana, result ) weights =
             Just
                 (case maybeExisting of
                     Just e ->
-                        case result of
-                            Game.CorrectMora ->
-                                min 1.0 (e + 0.1)
+                        clamp
+                            0.1
+                            1.0
+                            (case result of
+                                Game.CorrectMora ->
+                                    e + 0.1
 
-                            Game.IncorrectMora ->
-                                max 0.0 (e - 0.1)
+                                Game.IncorrectMora ->
+                                    e - 0.1
+                            )
 
                     Nothing ->
                         case result of
