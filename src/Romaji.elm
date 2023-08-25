@@ -1,4 +1,4 @@
-module Romaji exposing (CharacterMapping, groupByMora)
+module Romaji exposing (CharacterMapping, groupByMora, hiragana)
 
 import Dict exposing (Dict)
 
@@ -135,6 +135,13 @@ hiraganaToRomaji =
         , ( "」", "\"" )
         , ( "・", "/" )
         ]
+
+
+{-| List of all characters in hiragana
+-}
+hiragana : List String
+hiragana =
+    Dict.keys hiraganaToRomaji
 
 
 katakanaToRomaji : Dict String String

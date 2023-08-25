@@ -11,7 +11,8 @@ import Json.Encode
 import Maybe
 import Random
 import Random.Extra
-import Romaji exposing (groupByMora)
+import Romaji exposing (groupByMora, hiragana)
+import Set
 import Words exposing (amountOfWords, words)
 
 
@@ -49,21 +50,7 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     case flags.weights of
         Just weights ->
-            let
-                -- If all existing weights are at 1, meaning the user has guessed everything correctly
-                -- we just continue to randomize the next word
-                randomize =
-                    weights |> Dict.values |> List.all ((==) 1)
-            in
-            if randomize then
-                ( { state = Loading, weights = weights }, randomWordIndex amountOfWords )
-
-            else
-                let
-                    ids =
-                        getIdsOfWordsUserShouldTrainOn words weights
-                in
-                ( { state = Loading, weights = weights }, randomIdFromList ids )
+            ( { state = Loading, weights = weights }, getNextWord weights )
 
         Nothing ->
             ( { state = Loading
@@ -119,21 +106,7 @@ update msg model =
                             )
 
                         Just Game.NextWord ->
-                            let
-                                -- If all existing weights are at 1, meaning the user nails all kanas
-                                -- we just continue to randomize the next word
-                                randomize =
-                                    model.weights |> Dict.values |> List.all ((==) 1)
-                            in
-                            if randomize then
-                                ( { model | state = Loading }, randomWordIndex amountOfWords )
-
-                            else
-                                let
-                                    ids =
-                                        getIdsOfWordsUserShouldTrainOn words model.weights
-                                in
-                                ( { model | state = Loading }, randomIdFromList ids )
+                            ( { model | state = Loading }, getNextWord model.weights )
 
                         Nothing ->
                             ( { model | state = Playing updatedModel }, Cmd.map GameMsg cmd )
@@ -218,14 +191,26 @@ weigh weights word =
 
 {-| Returns all words with a less than 1 ratio, meaning the user has failed some kana in the word
 -}
-getIdsOfWordsUserShouldTrainOn : Array.Array Words.Word -> Dict.Dict String Float -> List Int
-getIdsOfWordsUserShouldTrainOn words weights =
+getIdsOfWordsUserShouldTrainOn : Dict.Dict String Float -> List Int
+getIdsOfWordsUserShouldTrainOn weights =
+    getIdsOfMatchingWords words (\{ kana } -> weigh weights kana < 1)
+
+
+{-| Get words including characters given in list
+-}
+getIdsOfWordsThatIncludesChars : List String -> List Int
+getIdsOfWordsThatIncludesChars characters =
+    getIdsOfMatchingWords words (\{ kana } -> List.any (String.contains kana) characters)
+
+
+getIdsOfMatchingWords : Array.Array Words.Word -> (Words.Word -> Bool) -> List Int
+getIdsOfMatchingWords words isGood =
     words
         |> Array.toIndexedList
         |> List.foldr
             (\( id, word ) ->
                 \acc ->
-                    if weigh weights word.kana < 1 then
+                    if isGood word then
                         id :: acc
 
                     else
@@ -285,3 +270,54 @@ randomIdFromList ids =
                     -- This should never happen since we check if the list is empty before
                     |> Random.map (Maybe.withDefault 0)
                 )
+
+
+type NextWordType
+    = Random -- User has weights for all chars and all have a weight of 1
+    | Untrained -- User has no weight for some chars
+    | Weighted -- User has a weight of < 1 for some chars
+
+
+getNextWord : Dict.Dict String Float -> Cmd Msg
+getNextWord weights =
+    let
+        typeOfNextWord =
+            -- We have no weights, just shuffle the next word
+            if Dict.size weights == 0 then
+                Random
+
+            else if weights |> Dict.values |> List.all ((==) 1.0) then
+                -- User has a weight for all chars
+                if weights |> Dict.size |> (==) (List.length hiragana) then
+                    Random
+
+                else
+                    Untrained
+
+            else
+                Weighted
+    in
+    case typeOfNextWord of
+        Random ->
+            randomWordIndex amountOfWords
+
+        Weighted ->
+            let
+                ids =
+                    getIdsOfWordsUserShouldTrainOn weights
+            in
+            randomIdFromList ids
+
+        Untrained ->
+            let
+                trainedCharacters =
+                    Dict.keys weights |> Set.fromList
+
+                untrainedChars =
+                    Set.diff (Set.fromList Romaji.hiragana) trainedCharacters
+                        |> Set.toList
+
+                ids =
+                    getIdsOfWordsThatIncludesChars untrainedChars
+            in
+            randomIdFromList ids
