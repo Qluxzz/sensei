@@ -200,7 +200,7 @@ getIdsOfWordsUserShouldTrainOn weights =
 -}
 getIdsOfWordsThatIncludesChars : List String -> List Int
 getIdsOfWordsThatIncludesChars characters =
-    getIdsOfMatchingWords words (\{ kana } -> List.any (String.contains kana) characters)
+    getIdsOfMatchingWords words (\{ kana } -> List.any (\s -> String.contains s kana) characters)
 
 
 getIdsOfMatchingWords : Array.Array Words.Word -> (Words.Word -> Bool) -> List Int
