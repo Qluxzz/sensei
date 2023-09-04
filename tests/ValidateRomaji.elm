@@ -13,6 +13,11 @@ romajiToMoraCases =
         )
       , [ ( "か", Game.CorrectMora ), ( "ん", Game.CorrectMora ), ( "も", Game.IncorrectMora ), ( "ん", Game.CorrectMora ) ]
       )
+    , ( ( "kan"
+        , [ { mora = "か", romaji = "ka" }, { mora = "ん", romaji = "n" }, { mora = "も", romaji = "mo" }, { mora = "ん", romaji = "n" } ]
+        )
+      , [ ( "か", Game.CorrectMora ), ( "ん", Game.CorrectMora ), ( "も", Game.IncorrectMora ), ( "ん", Game.IncorrectMora ) ]
+      )
     ]
 
 
@@ -22,6 +27,11 @@ hiraganaToMoraCases =
         , [ { mora = "か", romaji = "ka" }, { mora = "ん", romaji = "n" }, { mora = "も", romaji = "mo" }, { mora = "ん", romaji = "n" } ]
         )
       , [ ( "か", Game.CorrectMora ), ( "ん", Game.CorrectMora ), ( "も", Game.CorrectMora ), ( "ん", Game.CorrectMora ) ]
+      )
+    , ( ( "かん"
+        , [ { mora = "か", romaji = "ka" }, { mora = "ん", romaji = "n" }, { mora = "も", romaji = "mo" }, { mora = "ん", romaji = "n" } ]
+        )
+      , [ ( "か", Game.CorrectMora ), ( "ん", Game.CorrectMora ), ( "も", Game.IncorrectMora ), ( "ん", Game.IncorrectMora ) ]
       )
     , ( ( "あっしゅく"
         , [ { mora = "あ", romaji = "a" }, { mora = "っしゅ", romaji = "sshu" }, { mora = "く", romaji = "ku" } ]

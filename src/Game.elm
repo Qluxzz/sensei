@@ -106,7 +106,7 @@ update msg model =
                                 failedAttempt
                       }
                     , Cmd.none
-                    , Just (RomajiAttemptResult (hiraganaToMora normalizedInput model.characterMapping))
+                    , Just (RomajiAttemptResult (romajiToMora normalizedInput model.characterMapping))
                     )
 
                 RomajiToHiragana ->
@@ -119,7 +119,7 @@ update msg model =
                                 failedAttempt
                       }
                     , Cmd.none
-                    , Just (RomajiAttemptResult (romajiToMora normalizedInput model.characterMapping))
+                    , Just (RomajiAttemptResult (hiraganaToMora normalizedInput model.characterMapping))
                     )
 
                 WhatDoesWordMean ->
@@ -290,7 +290,7 @@ type MoraResult
 -}
 getResultPerMora : (CharacterMapping -> String) -> String -> List CharacterMapping -> List ( String, MoraResult )
 getResultPerMora field attempt correct =
-    List.foldr
+    List.foldl
         (\character ->
             \( att, acc ) ->
                 let
@@ -301,10 +301,10 @@ getResultPerMora field attempt correct =
                         String.length str
 
                     chars =
-                        String.right length att
+                        String.left length att
 
                     remaining =
-                        String.dropRight length att
+                        String.dropLeft length att
                 in
                 ( remaining
                 , ( character.mora
@@ -320,6 +320,7 @@ getResultPerMora field attempt correct =
         ( attempt, [] )
         correct
         |> Tuple.second
+        |> List.reverse
 
 
 romajiToMora : String -> List CharacterMapping -> List ( String, MoraResult )
