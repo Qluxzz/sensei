@@ -1,4 +1,4 @@
-module Game exposing (Model, MoraResult(..), Msg, OutMsg(..), getResultPerMora, init, update, view)
+module Game exposing (Model, MoraResult(..), Msg, OutMsg(..), hiraganaToMora, init, romajiToMora, update, view)
 
 import Html exposing (Html, button, div, form, li, p, span, text, ul)
 import Html.Attributes exposing (autofocus, class, classList, disabled, id, style, type_, value)
@@ -106,7 +106,7 @@ update msg model =
                                 failedAttempt
                       }
                     , Cmd.none
-                    , Just (RomajiAttemptResult (getResultPerMora normalizedInput model.characterMapping))
+                    , Just (RomajiAttemptResult (hiraganaToMora normalizedInput model.characterMapping))
                     )
 
                 RomajiToHiragana ->
@@ -119,7 +119,7 @@ update msg model =
                                 failedAttempt
                       }
                     , Cmd.none
-                    , Nothing
+                    , Just (RomajiAttemptResult (romajiToMora normalizedInput model.characterMapping))
                     )
 
                 WhatDoesWordMean ->
@@ -286,16 +286,19 @@ type MoraResult
     | IncorrectMora
 
 
-{-| Validates per mora if correct or not
+{-| Validates attempt and give result per hiragana/kana character
 -}
-getResultPerMora : String -> List CharacterMapping -> List ( String, MoraResult )
-getResultPerMora attempt correct =
+getResultPerMora : (CharacterMapping -> String) -> String -> List CharacterMapping -> List ( String, MoraResult )
+getResultPerMora field attempt correct =
     List.foldr
         (\character ->
             \( att, acc ) ->
                 let
+                    str =
+                        field character
+
                     length =
-                        String.length character.romaji
+                        String.length str
 
                     chars =
                         String.right length att
@@ -305,7 +308,7 @@ getResultPerMora attempt correct =
                 in
                 ( remaining
                 , ( character.mora
-                  , if character.romaji == chars then
+                  , if str == chars then
                         CorrectMora
 
                     else
@@ -317,3 +320,13 @@ getResultPerMora attempt correct =
         ( attempt, [] )
         correct
         |> Tuple.second
+
+
+romajiToMora : String -> List CharacterMapping -> List ( String, MoraResult )
+romajiToMora =
+    getResultPerMora .romaji
+
+
+hiraganaToMora : String -> List CharacterMapping -> List ( String, MoraResult )
+hiraganaToMora =
+    getResultPerMora .mora
