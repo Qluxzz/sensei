@@ -177,15 +177,11 @@ view model =
                 , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
                     [ Html.label [ Html.Attributes.for "input-field" ] ((text <| "Please write ") :: List.map (\{ mora, romaji } -> withTooltip mora romaji) model.characterMapping ++ [ text " in romaji" ])
                     , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
-                    , case model.attempt.result of
-                        Correct ->
-                            button [ type_ "button", onClick Continue ] [ text "Continue!" ]
+                    , if model.attempt.result == Correct then
+                        button [ type_ "button", onClick Continue ] [ text "Continue!" ]
 
-                        Incorrect ->
-                            button [] [ text "Submit" ]
-
-                        Undecided ->
-                            button [ disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
+                      else
+                        button [ type_ "submit", disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
                     ]
                 , resultView attempt.result
                 ]
@@ -197,15 +193,11 @@ view model =
                 , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
                     [ Html.label [ Html.Attributes.for "input-field" ] (text "Enter hiragana for " :: List.map (\{ mora, romaji } -> withTooltip romaji mora) model.characterMapping)
                     , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
-                    , case model.attempt.result of
-                        Correct ->
-                            button [ type_ "button", onClick Continue ] [ text "Continue!" ]
+                    , if model.attempt.result == Correct then
+                        button [ type_ "button", onClick Continue ] [ text "Continue!" ]
 
-                        Incorrect ->
-                            button [] [ text "Submit" ]
-
-                        Undecided ->
-                            button [ disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
+                      else
+                        button [ type_ "submit", disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
                     ]
                 , resultView attempt.result
                 ]
@@ -241,15 +233,11 @@ view model =
                 , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
                     [ Html.label [ Html.Attributes.for "input-field" ] [ text <| "Enter one of the glossary words" ]
                     , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
-                    , case model.attempt.result of
-                        Correct ->
-                            button [ type_ "button", onClick Continue ] [ text "Next word!" ]
+                    , if model.attempt.result == Correct then
+                        button [ type_ "button", onClick Continue ] [ text "Continue!" ]
 
-                        Incorrect ->
-                            button [] [ text "Submit" ]
-
-                        Undecided ->
-                            button [ disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
+                      else
+                        button [ type_ "submit", disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
                     ]
                 , resultView attempt.result
                 ]

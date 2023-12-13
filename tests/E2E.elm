@@ -50,7 +50,7 @@ gameLoopTest : Test
 gameLoopTest =
     describe "Game loop"
         [ test "game is playable" <|
-            \() ->
+            \_ ->
                 createWithInitalizedWord
                     -- Romaji stage
                     |> ProgramTest.fillIn "input-field" "input-field" testCase.romaji
@@ -65,6 +65,38 @@ gameLoopTest =
                     |> ProgramTest.clickButton "Continue!"
                     -- Glossary stage
                     |> ProgramTest.ensureViewHas [ Test.Html.Selector.exactText ("Your word is " ++ testCase.word.str) ]
+                    |> ProgramTest.fillIn "input-field" "input-field" (List.head testCase.word.glossary |> Maybe.withDefault "ERROR")
+                    |> ProgramTest.clickButton "Submit"
+                    |> ProgramTest.expectViewHas [ Test.Html.Selector.exactText "That's correct!" ]
+        , test "Error message when inputting wrong word" <|
+            \_ ->
+                let
+                    wrongWord =
+                        "Not the right answer!"
+                in
+                createWithInitalizedWord
+                    -- Romaji stage
+                    |> ProgramTest.fillIn "input-field" "input-field" wrongWord
+                    |> ProgramTest.clickButton "Submit"
+                    |> ProgramTest.ensureViewHas [ Test.Html.Selector.exactText "Sorry, that's not the right answer!" ]
+                    |> ProgramTest.fillIn "input-field" "input-field" testCase.romaji
+                    |> ProgramTest.clickButton "Submit"
+                    |> ProgramTest.ensureViewHas [ Test.Html.Selector.exactText "That's correct!" ]
+                    |> ProgramTest.clickButton "Continue!"
+                    -- Kana stage
+                    |> ProgramTest.ensureViewHas [ Test.Html.Selector.exactText ("The word in romaji is " ++ testCase.romaji) ]
+                    |> ProgramTest.fillIn "input-field" "input-field" wrongWord
+                    |> ProgramTest.clickButton "Submit"
+                    |> ProgramTest.ensureViewHas [ Test.Html.Selector.exactText "Sorry, that's not the right answer!" ]
+                    |> ProgramTest.fillIn "input-field" "input-field" testCase.word.kana
+                    |> ProgramTest.clickButton "Submit"
+                    |> ProgramTest.ensureViewHas [ Test.Html.Selector.exactText "That's correct!" ]
+                    |> ProgramTest.clickButton "Continue!"
+                    -- Glossary stage
+                    |> ProgramTest.ensureViewHas [ Test.Html.Selector.exactText ("Your word is " ++ testCase.word.str) ]
+                    |> ProgramTest.fillIn "input-field" "input-field" wrongWord
+                    |> ProgramTest.clickButton "Submit"
+                    |> ProgramTest.ensureViewHas [ Test.Html.Selector.exactText "Sorry, that's not the right answer!" ]
                     |> ProgramTest.fillIn "input-field" "input-field" (List.head testCase.word.glossary |> Maybe.withDefault "ERROR")
                     |> ProgramTest.clickButton "Submit"
                     |> ProgramTest.expectViewHas [ Test.Html.Selector.exactText "That's correct!" ]
