@@ -283,7 +283,7 @@ getNextWord weights =
     let
         typeOfNextWord =
             -- We have no weights, just shuffle the next word
-            if Dict.size weights == 0 then
+            if Dict.isEmpty weights then
                 Random
 
             else if weights |> Dict.values |> List.all ((==) 1.0) then
