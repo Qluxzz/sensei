@@ -53,11 +53,7 @@ init flags =
             ( { state = Loading, weights = weights }, getNextWord weights )
 
         Nothing ->
-            ( { state = Loading
-              , weights = flags.weights |> Maybe.withDefault Dict.empty
-              }
-            , randomWordIndex amountOfWords
-            )
+            ( { state = Loading, weights = Dict.empty }, randomWordIndex amountOfWords )
 
 
 type Msg
