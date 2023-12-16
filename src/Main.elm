@@ -1,4 +1,4 @@
-port module Main exposing (main)
+port module Main exposing (main, updateWeight, weigh)
 
 import Array
 import Browser
