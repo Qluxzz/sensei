@@ -25,5 +25,13 @@ suite =
                 \_ ->
                     updateWeight ( "お", Game.IncorrectMora ) (Dict.fromList [ ( "お", 0.5 ) ])
                         |> Expect.equalDicts (Dict.fromList [ ( "お", 0.4 ) ])
+            , test "If weight didn't exist before, and the answer was incorrect, correct weight is set" <|
+                \_ ->
+                    updateWeight ( "お", Game.IncorrectMora ) Dict.empty
+                        |> Expect.equalDicts (Dict.fromList [ ( "お", 0.1 ) ])
+            , test "If weight didn't exist before, and the answer was correct, correct weight is set" <|
+                \_ ->
+                    updateWeight ( "お", Game.CorrectMora ) Dict.empty
+                        |> Expect.equalDicts (Dict.fromList [ ( "お", 1.0 ) ])
             ]
         ]
