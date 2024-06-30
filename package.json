@@ -1,0 +1,16 @@
+{
+  "name": "elm-template",
+  "version": "1.0.0",
+  "description": "Template repository for an Elm project",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx elm-test"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "elm-format": "^0.8.7",
+    "elm-live": "^4.0.2",
+    "elm-test": "^0.19.1-revision12"
+  }
+}
