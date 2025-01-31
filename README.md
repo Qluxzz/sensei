@@ -14,5 +14,5 @@ This template also includes an initial test which tests the initial document str
 The included pipeline include three steps:
 
 - A test step that runs all tests and reports if all tests succeeded
-- A build step that compiles the code and optimizes/minimizes it according to [Simon Lydells findings](https://gist.github.com/lydell/b92ec8b6c7ae91945da10c814e565d5e)
+- A build step that compiles the code and optimizes/minimizes it according to [Simon Lydell's findings](https://gist.github.com/lydell/b92ec8b6c7ae91945da10c814e565d5e)
 - A publishing step that publishes it to Github pages
