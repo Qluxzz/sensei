@@ -45,6 +45,8 @@ jobs:
           mv elm.min.js build/elm.js
           mv index.html build/
           mv style.css build/
+          mv manifest.json build/
+          mv service_worker.js build/
 
       - name: Upload production artifacts
         uses: actions/upload-pages-artifact@v3

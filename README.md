@@ -9,6 +9,11 @@ Here's more documentation on the benefits: https://github.com/avh4/elm-program-t
 
 This template also includes an initial test which tests the initial document structure
 
+## Service worker for offline access
+
+Since most of my Elm apps are client side only, we can also make them work offline by adding a service worker.
+The service worker caches the resources used by the template and makes it so it can load even if offline.
+
 ## Pipeline
 
 The included pipeline include three steps:
