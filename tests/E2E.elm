@@ -1,14 +1,14 @@
-module E2E exposing (..)
+module E2E exposing (suite)
 
 import Main
 import ProgramTest
-import Test exposing (..)
+import Test
 import Test.Html.Selector as Q
 
 
-suite : Test
+suite : Test.Test
 suite =
-    test "Renders as expected" <|
+    Test.test "Renders as expected" <|
         \_ ->
             ProgramTest.createDocument
                 { init = Main.init

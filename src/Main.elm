@@ -1,7 +1,7 @@
 module Main exposing (init, main, update, view)
 
 import Browser
-import Html exposing (..)
+import Html
 
 
 type alias Flags =
@@ -68,7 +68,7 @@ view : Model -> Browser.Document Msg
 view _ =
     { title = "Document Title"
     , body =
-        [ div []
-            [ text "New Document" ]
+        [ Html.div []
+            [ Html.text "New Document" ]
         ]
     }
