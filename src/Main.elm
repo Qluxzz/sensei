@@ -10,7 +10,7 @@ type alias Flags =
 
 init : Flags -> ( Model, Effect )
 init _ =
-    ( Model 0 "modelInitialValue", None )
+    ( { property = 0, property2 = "hello" }, None )
 
 
 main : Program Flags Model Msg
