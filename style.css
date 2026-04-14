@@ -1,6 +1,7 @@
+/* CSS RESET */
 /* Based on Josh Comeau blog post: https://www.joshwcomeau.com/css/custom-css-reset/ */
 
-/* 1. Use a more-intuitive box-sizing model. */
+/* 1. Use a more-intuitive box-sizing model */
 *,
 *::before,
 *::after {
@@ -8,17 +9,18 @@
 }
 
 /* 2. Remove default margin */
-* {
+*:not(dialog) {
     margin: 0;
 }
 
-/* 3. Add accessible line-height, 4. Improve text rendering */
 body {
+    /* 4. Increase line-height */
     line-height: 1.5;
+    /* 5. Improve text rendering */
     -webkit-font-smoothing: antialiased;
 }
 
-/* 5. Improve media defaults */
+/* 6. Improve media defaults */
 img,
 picture,
 video,
@@ -28,7 +30,7 @@ svg {
     max-width: 100%;
 }
 
-/* 6. Remove built-in form typography styles */
+/* 7. Inherit fonts for form controls */
 input,
 button,
 textarea,
@@ -36,7 +38,7 @@ select {
     font: inherit;
 }
 
-/* 7. Avoid text overflows */
+/* 8. Avoid text overflows */
 p,
 h1,
 h2,
@@ -47,4 +49,18 @@ h6 {
     overflow-wrap: break-word;
 }
 
-/* End of CSS reset */
+/* 9. Improve line wrapping */
+p {
+    text-wrap: pretty;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    text-wrap: balance;
+}
+
+/* END OF CSS RESET */
