@@ -20,6 +20,7 @@
     "elm-review": "^2.13.5",
     "elm-test": "^0.19.1-revision12",
     "vite": "^8.0.8",
-    "vite-plugin-elm": "^3.0.1"
+    "vite-plugin-elm": "^3.0.1",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }
