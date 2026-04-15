@@ -2,8 +2,13 @@
   "name": "elm-template",
   "version": "1.0.0",
   "description": "Template repository for an Elm project",
-  "main": "index.js",
+  "main": "main.js",
+  "engines": {
+    "node": "^24.0.0"
+  },
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
     "test": "npx elm-test",
     "review": "npx elm-review"
   },
@@ -12,8 +17,9 @@
   "devDependencies": {
     "elm": "^0.19.1-6",
     "elm-format": "^0.8.7",
-    "elm-live": "^4.0.2",
     "elm-review": "^2.13.5",
-    "elm-test": "^0.19.1-revision12"
+    "elm-test": "^0.19.1-revision12",
+    "vite": "^8.0.8",
+    "vite-plugin-elm": "^3.0.1"
   }
 }
