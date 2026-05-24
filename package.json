@@ -16,11 +16,11 @@
   "license": "MIT",
   "devDependencies": {
     "elm": "^0.19.1-6",
-    "elm-format": "^0.8.7",
+    "elm-format": "^0.8.8",
     "elm-review": "^2.13.5",
-    "elm-test": "^0.19.1-revision12",
-    "vite": "^7.3.2",
+    "elm-test": "^0.19.1-revision17",
+    "vite": "^7.3.3",
     "vite-plugin-elm": "^3.0.1",
-    "vite-plugin-pwa": "^1.2.0"
+    "vite-plugin-pwa": "^1.3.0"
   }
 }
