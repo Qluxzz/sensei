@@ -3,7 +3,7 @@ module E2E exposing (suite)
 import Main
 import ProgramTest
 import Test
-import Test.Html.Selector as Q
+import Test.Html.Selector
 
 
 suite : Test.Test
@@ -17,5 +17,5 @@ suite =
                 }
                 |> ProgramTest.start ()
                 |> ProgramTest.expectViewHas
-                    [ Q.exactText "New Document"
+                    [ Test.Html.Selector.exactText "New Document"
                     ]
