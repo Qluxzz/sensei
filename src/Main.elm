@@ -4,16 +4,15 @@ import Array
 import Browser
 import Dict
 import Game
-import Html exposing (Html, div, header, text)
-import Html.Attributes exposing (class)
+import Html exposing (Html)
+import Html.Attributes
 import Json.Decode
 import Json.Encode
-import Maybe
 import Random
 import Random.Extra
-import Romaji exposing (groupByMora, hiragana)
+import Romaji
 import Set
-import Words exposing (amountOfWords, words)
+import Words
 
 
 main : Program Json.Decode.Value Model Msg
@@ -53,7 +52,7 @@ init flags =
             ( { state = Loading, weights = weights }, getNextWord weights )
 
         Nothing ->
-            ( { state = Loading, weights = Dict.empty }, randomWordIndex amountOfWords )
+            ( { state = Loading, weights = Dict.empty }, randomWordIndex Words.amountOfWords )
 
 
 type Msg
@@ -68,7 +67,7 @@ update msg model =
             case msg of
                 RandomWordIndex index ->
                     case
-                        Array.get index words
+                        Array.get index Words.words
                             |> Result.fromMaybe ("Failed to find word with id " ++ String.fromInt index)
                             |> Result.andThen Game.init
                     of
@@ -116,8 +115,8 @@ update msg model =
 
 baseView : Html Msg -> List (Html Msg)
 baseView content =
-    [ header [] [ text "Sensei" ]
-    , div [ class "container" ] [ content ]
+    [ Html.header [] [ Html.text "Sensei" ]
+    , Html.div [ Html.Attributes.class "container" ] [ content ]
     ]
 
 
@@ -129,10 +128,10 @@ view model =
                 Html.map GameMsg (Game.view gameModel)
 
             Loading ->
-                text "Loading word..."
+                Html.text "Loading word..."
 
             Failed errMsg ->
-                text errMsg
+                Html.text errMsg
         )
 
 
@@ -174,7 +173,7 @@ flagsDecoder =
 -}
 weigh : Dict.Dict String Float -> String -> Float
 weigh weights word =
-    groupByMora word
+    Romaji.groupByMora word
         |> Result.map
             (List.foldr
                 (\group ->
@@ -189,14 +188,14 @@ weigh weights word =
 -}
 getIdsOfWordsUserShouldTrainOn : Dict.Dict String Float -> List Int
 getIdsOfWordsUserShouldTrainOn weights =
-    getIdsOfMatchingWords words (\{ kana } -> weigh weights kana < 1)
+    getIdsOfMatchingWords Words.words (\{ kana } -> weigh weights kana < 1)
 
 
 {-| Get words including characters given in list
 -}
 getIdsOfWordsThatIncludesChars : List String -> List Int
 getIdsOfWordsThatIncludesChars characters =
-    getIdsOfMatchingWords words (\{ kana } -> List.any (\s -> String.contains s kana) characters)
+    getIdsOfMatchingWords Words.words (\{ kana } -> List.any (\s -> String.contains s kana) characters)
 
 
 getIdsOfMatchingWords : Array.Array Words.Word -> (Words.Word -> Bool) -> List Int
@@ -258,7 +257,7 @@ randomIdFromList : List Int -> Cmd Msg
 randomIdFromList ids =
     case ids of
         [] ->
-            randomWordIndex amountOfWords
+            randomWordIndex Words.amountOfWords
 
         _ ->
             Random.generate RandomWordIndex
@@ -284,7 +283,7 @@ getNextWord weights =
 
             else if weights |> Dict.values |> List.all ((==) 1.0) then
                 -- User has a weight for all chars
-                if weights |> Dict.size |> (==) (List.length hiragana) then
+                if weights |> Dict.size |> (==) (List.length Romaji.hiragana) then
                     Random
 
                 else
@@ -295,7 +294,7 @@ getNextWord weights =
     in
     case typeOfNextWord of
         Random ->
-            randomWordIndex amountOfWords
+            randomWordIndex Words.amountOfWords
 
         Weighted ->
             let

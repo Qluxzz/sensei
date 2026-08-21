@@ -1,37 +1,37 @@
-module Weighting exposing (..)
+module Weighting exposing (suite)
 
 import Dict
 import Expect
 import Game
-import Main exposing (updateWeight, weigh)
-import Test exposing (Test, describe, test)
+import Main
+import Test exposing (Test)
 
 
 suite : Test
 suite =
-    describe "Test weighting of words"
-        [ test "Weighing a word against no weights, returns default weight" <|
-            \_ -> weigh Dict.empty "おかね" |> Expect.equal 1.0
-        , test "Weighing a word against weights, weighs the word correctly" <|
-            \_ -> weigh (Dict.fromList [ ( "お", 0.1 ) ]) "おかね" |> Expect.within (Expect.Absolute 0.0000001) 0.1
-        , test "Weighing a word against weights, weighs the word correctly 2" <|
-            \_ -> weigh (Dict.fromList [ ( "お", 0.1 ), ( "か", 0.6 ) ]) "おかね" |> Expect.within (Expect.Absolute 0.0000001) 0.06
-        , describe "Updating the weight of a mora works"
-            [ test "When the user answers correctly the weight is increased" <|
+    Test.describe "Test weighting of words"
+        [ Test.test "Weighing a word against no weights, returns default weight" <|
+            \_ -> Main.weigh Dict.empty "おかね" |> Expect.equal 1.0
+        , Test.test "Weighing a word against weights, weighs the word correctly" <|
+            \_ -> Main.weigh (Dict.fromList [ ( "お", 0.1 ) ]) "おかね" |> Expect.within (Expect.Absolute 0.0000001) 0.1
+        , Test.test "Weighing a word against weights, weighs the word correctly 2" <|
+            \_ -> Main.weigh (Dict.fromList [ ( "お", 0.1 ), ( "か", 0.6 ) ]) "おかね" |> Expect.within (Expect.Absolute 0.0000001) 0.06
+        , Test.describe "Updating the weight of a mora works"
+            [ Test.test "When the user answers correctly the weight is increased" <|
                 \_ ->
-                    updateWeight ( "お", Game.CorrectMora ) (Dict.fromList [ ( "お", 0.1 ) ])
+                    Main.updateWeight ( "お", Game.CorrectMora ) (Dict.fromList [ ( "お", 0.1 ) ])
                         |> Expect.equalDicts (Dict.fromList [ ( "お", 0.2 ) ])
-            , test "When the user answers incorrectly the weight is decreased" <|
+            , Test.test "When the user answers incorrectly the weight is decreased" <|
                 \_ ->
-                    updateWeight ( "お", Game.IncorrectMora ) (Dict.fromList [ ( "お", 0.5 ) ])
+                    Main.updateWeight ( "お", Game.IncorrectMora ) (Dict.fromList [ ( "お", 0.5 ) ])
                         |> Expect.equalDicts (Dict.fromList [ ( "お", 0.4 ) ])
-            , test "If weight didn't exist before, and the answer was incorrect, correct weight is set" <|
+            , Test.test "If weight didn't exist before, and the answer was incorrect, correct weight is set" <|
                 \_ ->
-                    updateWeight ( "お", Game.IncorrectMora ) Dict.empty
+                    Main.updateWeight ( "お", Game.IncorrectMora ) Dict.empty
                         |> Expect.equalDicts (Dict.fromList [ ( "お", 0.1 ) ])
-            , test "If weight didn't exist before, and the answer was correct, correct weight is set" <|
+            , Test.test "If weight didn't exist before, and the answer was correct, correct weight is set" <|
                 \_ ->
-                    updateWeight ( "お", Game.CorrectMora ) Dict.empty
+                    Main.updateWeight ( "お", Game.CorrectMora ) Dict.empty
                         |> Expect.equalDicts (Dict.fromList [ ( "お", 1.0 ) ])
             ]
         ]

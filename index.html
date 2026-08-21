@@ -1,47 +1,25 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="/main.js"></script>
     <meta name="description" content="Training japanese words">
     <title>Sensei</title>
     <link rel="stylesheet" href="style.css" />
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧑‍🏫</text></svg>">
-    <script src="elm.js" type="text/javascript"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧑‍🏫</text></svg>">
 </head>
+  </head>
 
-<body>
+  <body>
     <pre id="elm"></pre>
-    <noscript>Sensei needs JavaScript enabled in order to work.</noscript>
-    <script type="text/javascript">
-        const key = "@sensei-statistics"
-
-        const statistics = (() => {
-            try { // User might have disabled access to local storage
-                const existing = localStorage.getItem(key)
-                if (!existing)
-                    return null
-
-                return JSON.parse(existing)
-            } catch {
-                return null
-            }
-        })()
-
-        const app = Elm.Main.init({ node: document.getElementById("elm"), flags: statistics })
-
-        app.ports.persistStatistics.subscribe(statistics => {
-            try {
-                localStorage.setItem(key, JSON.stringify(statistics))
-            } catch {
-                // If the user has disabled access to local storage
-                // there really isn't a lot to do
-            }
-        })
-    </script>
-</body>
-
+    <noscript>
+      This app requires JavaScript, please enable it and reload the page!
+    </noscript>
+  </body>
 </html>

@@ -2,12 +2,12 @@ module ConvertWord exposing (suite)
 
 import Array
 import Expect
-import Romaji exposing (CharacterMapping, groupByMora)
-import Test exposing (Test, describe, test)
-import Words exposing (words)
+import Romaji
+import Test exposing (Test)
+import Words
 
 
-cases : List ( String, Result String (List CharacterMapping) )
+cases : List ( String, Result String (List Romaji.CharacterMapping) )
 cases =
     [ ( "いっとう"
       , Ok
@@ -49,26 +49,26 @@ cases =
 
 suite : Test
 suite =
-    describe "Convert words to list of mora and romaji representation"
-        [ describe "Get romaji per mora in word"
+    Test.describe "Convert words to list of mora and romaji representation"
+        [ Test.describe "Get romaji per mora in word"
             (List.map
                 (\( input, expected ) ->
-                    test input <|
+                    Test.test input <|
                         \_ ->
-                            groupByMora input
+                            Romaji.groupByMora input
                                 |> Expect.equal expected
                 )
                 cases
             )
-        , describe "No word should fail to be grouped by mora"
+        , Test.describe "No word should fail to be grouped by mora"
             (Array.indexedMap
                 (\i ->
                     \{ kana } ->
                         -- Multiples of the same word can appear as a verb or a noun
                         -- so we append the index to avoid "same test name error"
-                        test (String.fromInt i ++ ": " ++ kana) <| \_ -> groupByMora kana |> Expect.ok
+                        Test.test (String.fromInt i ++ ": " ++ kana) <| \_ -> Romaji.groupByMora kana |> Expect.ok
                 )
-                words
+                Words.words
                 |> Array.toList
             )
         ]

@@ -1,12 +1,12 @@
-module ValidateRomaji exposing (..)
+module ValidateRomaji exposing (hiraganaToMoraCases, romajiToMoraCases, suite)
 
 import Expect
 import Game
-import Romaji exposing (CharacterMapping)
-import Test exposing (Test, describe, test)
+import Romaji
+import Test exposing (Test)
 
 
-romajiToMoraCases : List ( ( String, List CharacterMapping ), List ( String, Game.MoraResult ) )
+romajiToMoraCases : List ( ( String, List Romaji.CharacterMapping ), List ( String, Game.MoraResult ) )
 romajiToMoraCases =
     [ ( ( "kanmen"
         , [ { mora = "か", romaji = "ka" }, { mora = "ん", romaji = "n" }, { mora = "も", romaji = "mo" }, { mora = "ん", romaji = "n" } ]
@@ -21,7 +21,7 @@ romajiToMoraCases =
     ]
 
 
-hiraganaToMoraCases : List ( ( String, List CharacterMapping ), List ( String, Game.MoraResult ) )
+hiraganaToMoraCases : List ( ( String, List Romaji.CharacterMapping ), List ( String, Game.MoraResult ) )
 hiraganaToMoraCases =
     [ ( ( "かんもん"
         , [ { mora = "か", romaji = "ka" }, { mora = "ん", romaji = "n" }, { mora = "も", romaji = "mo" }, { mora = "ん", romaji = "n" } ]
@@ -43,20 +43,20 @@ hiraganaToMoraCases =
 
 suite : Test
 suite =
-    describe "Validate attempt"
-        [ describe "Romaji to mora"
+    Test.describe "Validate attempt"
+        [ Test.describe "Romaji to mora"
             (List.map
                 (\( ( attempt, correct ), wanted ) ->
-                    test ("Attempt " ++ attempt ++ " should yield " ++ Debug.toString wanted) <|
+                    Test.test ("Attempt " ++ attempt ++ " should yield " ++ Debug.toString wanted) <|
                         \_ ->
                             Expect.equalLists (Game.romajiToMora attempt correct) wanted
                 )
                 romajiToMoraCases
             )
-        , describe "Hiragana to mora"
+        , Test.describe "Hiragana to mora"
             (List.map
                 (\( ( attempt, correct ), wanted ) ->
-                    test ("Attempt " ++ attempt ++ " should yield " ++ Debug.toString wanted) <|
+                    Test.test ("Attempt " ++ attempt ++ " should yield " ++ Debug.toString wanted) <|
                         \_ ->
                             Expect.equalLists (Game.hiraganaToMora attempt correct) wanted
                 )

@@ -1,0 +1,11 @@
+name: "Setup Node"
+description: "Setups Node using the version defined in the package.json file"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: "package.json"
+        cache: "npm"
+        cache-dependency-path: "package-lock.json"

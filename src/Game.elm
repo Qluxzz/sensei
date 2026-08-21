@@ -1,13 +1,12 @@
 module Game exposing (Model, MoraResult(..), Msg, OutMsg(..), hiraganaToMora, init, romajiToMora, update, view)
 
-import Html exposing (Html, button, div, form, li, p, span, text, ul)
-import Html.Attributes exposing (autofocus, class, classList, disabled, id, style, type_, value)
-import Html.Events exposing (onClick, onInput, onSubmit)
-import Platform.Cmd as Cmd
-import Romaji exposing (CharacterMapping, groupByMora)
+import Html exposing (Html)
+import Html.Attributes
+import Html.Events
+import Romaji
 import Set exposing (Set)
-import Tooltip exposing (withTooltip)
-import Words exposing (Word)
+import Tooltip
+import Words
 
 
 type State
@@ -21,9 +20,9 @@ cleanAttempt =
     Attempt "" Undecided
 
 
-init : Word -> Result.Result String ( Model, Cmd Msg )
+init : Words.Word -> Result.Result String ( Model, Cmd Msg )
 init word =
-    groupByMora word.kana
+    Romaji.groupByMora word.kana
         |> Result.map
             (\characterMapping ->
                 ( { word = word
@@ -45,8 +44,8 @@ type Result
 
 
 type alias Model =
-    { word : Word
-    , characterMapping : List CharacterMapping
+    { word : Words.Word
+    , characterMapping : List Romaji.CharacterMapping
     , romaji : String
     , attempt : Attempt
     , state : State
@@ -164,49 +163,49 @@ view model =
         attempt =
             model.attempt
     in
-    div [ class "content" ]
+    Html.div [ Html.Attributes.class "content" ]
         (case model.state of
             Romaji ->
                 [ kanjiDisplay model.word.str
-                , p [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.kana ++ ")" ] ]
-                , p [] [ text "It means:" ]
-                , div [ style "overflow" "auto" ]
-                    [ ul [] (List.map (\meaning -> li [] [ text meaning ]) model.word.glossary)
+                , Html.p [] [ Html.text <| "Your word is " ++ model.word.str, Html.span [ Html.Attributes.style "white-space" "nowrap" ] [ Html.text <| "(" ++ model.word.kana ++ ")" ] ]
+                , Html.p [] [ Html.text "It means:" ]
+                , Html.div [ Html.Attributes.style "overflow" "auto" ]
+                    [ Html.ul [] (List.map (\meaning -> Html.li [] [ Html.text meaning ]) model.word.glossary)
                     ]
-                , div [ style "flex-grow" "1" ] []
-                , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ Html.label [ Html.Attributes.for "input-field" ] ((text <| "Please write ") :: List.map (\{ mora, romaji } -> withTooltip mora romaji) model.characterMapping ++ [ text " in romaji" ])
-                    , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
+                , Html.div [ Html.Attributes.style "flex-grow" "1" ] []
+                , Html.form [ Html.Events.onSubmit Submit, Html.Attributes.style "display" "flex", Html.Attributes.style "flex-direction" "column", Html.Attributes.style "gap" "10px" ]
+                    [ Html.label [ Html.Attributes.for "input-field" ] ((Html.text <| "Please write ") :: List.map (\{ mora, romaji } -> Tooltip.withTooltip mora romaji) model.characterMapping ++ [ Html.text " in romaji" ])
+                    , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", Html.Attributes.type_ "text", Html.Events.onInput Input, Html.Attributes.value attempt.input, Html.Attributes.autofocus True, Html.Attributes.disabled <| model.attempt.result == Correct ] []
                     , if model.attempt.result == Correct then
-                        button [ type_ "button", onClick Continue ] [ text "Continue!" ]
+                        Html.button [ Html.Attributes.type_ "button", Html.Events.onClick Continue ] [ Html.text "Continue!" ]
 
                       else
-                        button [ type_ "submit", disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
+                        Html.button [ Html.Attributes.type_ "submit", Html.Attributes.disabled <| String.isEmpty attempt.input ] [ Html.text "Submit" ]
                     ]
                 , resultView attempt.result
                 ]
 
             RomajiToHiragana ->
                 [ kanjiDisplay model.word.str
-                , div [] [ text <| "The word in romaji is " ++ model.romaji ]
-                , div [ style "flex-grow" "1" ] []
-                , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ Html.label [ Html.Attributes.for "input-field" ] (text "Enter hiragana for " :: List.map (\{ mora, romaji } -> withTooltip romaji mora) model.characterMapping)
-                    , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
+                , Html.div [] [ Html.text <| "The word in romaji is " ++ model.romaji ]
+                , Html.div [ Html.Attributes.style "flex-grow" "1" ] []
+                , Html.form [ Html.Events.onSubmit Submit, Html.Attributes.style "display" "flex", Html.Attributes.style "flex-direction" "column", Html.Attributes.style "gap" "10px" ]
+                    [ Html.label [ Html.Attributes.for "input-field" ] (Html.text "Enter hiragana for " :: List.map (\{ mora, romaji } -> Tooltip.withTooltip romaji mora) model.characterMapping)
+                    , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", Html.Attributes.type_ "text", Html.Events.onInput Input, Html.Attributes.value attempt.input, Html.Attributes.autofocus True, Html.Attributes.disabled <| model.attempt.result == Correct ] []
                     , if model.attempt.result == Correct then
-                        button [ type_ "button", onClick Continue ] [ text "Continue!" ]
+                        Html.button [ Html.Attributes.type_ "button", Html.Events.onClick Continue ] [ Html.text "Continue!" ]
 
                       else
-                        button [ type_ "submit", disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
+                        Html.button [ Html.Attributes.type_ "submit", Html.Attributes.disabled <| String.isEmpty attempt.input ] [ Html.text "Submit" ]
                     ]
                 , resultView attempt.result
                 ]
 
             WhatDoesWordMean ->
                 [ kanjiDisplay model.word.str
-                , div [] [ text <| "Your word is " ++ model.word.str, span [ style "white-space" "nowrap" ] [ text <| "(" ++ model.word.kana ++ ")" ] ]
-                , div [ style "overflow" "auto" ]
-                    [ ul [ class "hidden-glossary-list" ]
+                , Html.div [] [ Html.text <| "Your word is " ++ model.word.str, Html.span [ Html.Attributes.style "white-space" "nowrap" ] [ Html.text <| "(" ++ model.word.kana ++ ")" ] ]
+                , Html.div [ Html.Attributes.style "overflow" "auto" ]
+                    [ Html.ul [ Html.Attributes.class "hidden-glossary-list" ]
                         (List.indexedMap
                             (\i ->
                                 \meaning ->
@@ -214,8 +213,8 @@ view model =
                                         visible =
                                             Set.member i model.showGlossaryAtIndex
                                     in
-                                    li [ id <| "glossary-item-" ++ String.fromInt (i + 1), classList [ ( "visible", visible ) ], onClick (RevealGlossaryWord i) ]
-                                        [ text
+                                    Html.li [ Html.Attributes.id <| "glossary-item-" ++ String.fromInt (i + 1), Html.Attributes.classList [ ( "visible", visible ) ], Html.Events.onClick (RevealGlossaryWord i) ]
+                                        [ Html.text
                                             (if visible then
                                                 meaning
 
@@ -227,17 +226,17 @@ view model =
                             model.word.glossary
                         )
                     ]
-                , div
-                    [ style "flex-grow" "1" ]
+                , Html.div
+                    [ Html.Attributes.style "flex-grow" "1" ]
                     []
-                , form [ onSubmit Submit, style "display" "flex", style "flex-direction" "column", style "gap" "10px" ]
-                    [ Html.label [ Html.Attributes.for "input-field" ] [ text <| "Enter one of the glossary words" ]
-                    , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", type_ "text", onInput Input, value attempt.input, autofocus True, disabled <| model.attempt.result == Correct ] []
+                , Html.form [ Html.Events.onSubmit Submit, Html.Attributes.style "display" "flex", Html.Attributes.style "flex-direction" "column", Html.Attributes.style "gap" "10px" ]
+                    [ Html.label [ Html.Attributes.for "input-field" ] [ Html.text <| "Enter one of the glossary words" ]
+                    , Html.input [ Html.Attributes.id "input-field", Html.Attributes.attribute "aria-label" "input-field", Html.Attributes.type_ "text", Html.Events.onInput Input, Html.Attributes.value attempt.input, Html.Attributes.autofocus True, Html.Attributes.disabled <| model.attempt.result == Correct ] []
                     , if model.attempt.result == Correct then
-                        button [ type_ "button", onClick Continue ] [ text "Continue!" ]
+                        Html.button [ Html.Attributes.type_ "button", Html.Events.onClick Continue ] [ Html.text "Continue!" ]
 
                       else
-                        button [ type_ "submit", disabled <| String.isEmpty attempt.input ] [ text "Submit" ]
+                        Html.button [ Html.Attributes.type_ "submit", Html.Attributes.disabled <| String.isEmpty attempt.input ] [ Html.text "Submit" ]
                     ]
                 , resultView attempt.result
                 ]
@@ -247,25 +246,25 @@ view model =
 kanjiDisplay : String -> Html msg
 kanjiDisplay kanji =
     Html.h1
-        [ style "font-size" ("min(calc(100cqw / " ++ String.fromInt (String.length kanji) ++ " - 10px), calc(50cqw - 10px))")
-        , style "text-align" "center"
-        , style "line-height" "1"
+        [ Html.Attributes.style "font-size" ("min(calc(100cqw / " ++ String.fromInt (String.length kanji) ++ " - 10px), calc(50cqw - 10px))")
+        , Html.Attributes.style "text-align" "center"
+        , Html.Attributes.style "line-height" "1"
         ]
-        [ text kanji ]
+        [ Html.text kanji ]
 
 
 resultView : Result -> Html msg
 resultView res =
-    p []
+    Html.p []
         [ case res of
             Correct ->
-                text "That's correct!"
+                Html.text "That's correct!"
 
             Incorrect ->
-                text "Sorry, that's not the right answer!"
+                Html.text "Sorry, that's not the right answer!"
 
             Undecided ->
-                text ""
+                Html.text ""
         ]
 
 
@@ -276,7 +275,7 @@ type MoraResult
 
 {-| Validates attempt and give result per hiragana/kana character
 -}
-getResultPerMora : (CharacterMapping -> String) -> String -> List CharacterMapping -> List ( String, MoraResult )
+getResultPerMora : (Romaji.CharacterMapping -> String) -> String -> List Romaji.CharacterMapping -> List ( String, MoraResult )
 getResultPerMora field attempt correct =
     List.foldl
         (\character ->
@@ -311,11 +310,11 @@ getResultPerMora field attempt correct =
         |> List.reverse
 
 
-romajiToMora : String -> List CharacterMapping -> List ( String, MoraResult )
+romajiToMora : String -> List Romaji.CharacterMapping -> List ( String, MoraResult )
 romajiToMora =
     getResultPerMora .romaji
 
 
-hiraganaToMora : String -> List CharacterMapping -> List ( String, MoraResult )
+hiraganaToMora : String -> List Romaji.CharacterMapping -> List ( String, MoraResult )
 hiraganaToMora =
     getResultPerMora .mora

@@ -1,6 +1,6 @@
 module Tooltip exposing (withTooltip)
 
-import Html exposing (Html, text)
+import Html exposing (Html)
 import Html.Attributes
 
 
@@ -13,4 +13,4 @@ withTooltip text_ tooltip =
         , Html.Attributes.attribute "data-tooltip" tooltip
         , Html.Attributes.tabindex -1
         ]
-        [ text text_ ]
+        [ Html.text text_ ]

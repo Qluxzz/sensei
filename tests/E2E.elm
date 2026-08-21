@@ -1,16 +1,16 @@
-module E2E exposing (..)
+module E2E exposing (TestCase, createWithInitalizedWord, gameLoopTest, testCase)
 
 import Game
 import Json.Encode
 import ProgramTest
-import Test exposing (..)
+import Test exposing (Test)
 import Test.Html.Query
 import Test.Html.Selector
-import Words exposing (Word)
+import Words
 
 
 type alias TestCase =
-    { word : Word, romaji : String }
+    { word : Words.Word, romaji : String }
 
 
 testCase : TestCase
@@ -48,8 +48,8 @@ createWithInitalizedWord =
 
 gameLoopTest : Test
 gameLoopTest =
-    describe "Game loop"
-        [ test "game is playable" <|
+    Test.describe "Game loop"
+        [ Test.test "game is playable" <|
             \_ ->
                 createWithInitalizedWord
                     -- Romaji stage
@@ -68,7 +68,7 @@ gameLoopTest =
                     |> ProgramTest.fillIn "input-field" "input-field" (List.head testCase.word.glossary |> Maybe.withDefault "ERROR")
                     |> ProgramTest.clickButton "Submit"
                     |> ProgramTest.expectViewHas [ Test.Html.Selector.exactText "That's correct!" ]
-        , test "Error message when inputting wrong word" <|
+        , Test.test "Error message when inputting wrong word" <|
             \_ ->
                 let
                     wrongWord =
@@ -100,14 +100,14 @@ gameLoopTest =
                     |> ProgramTest.fillIn "input-field" "input-field" (List.head testCase.word.glossary |> Maybe.withDefault "ERROR")
                     |> ProgramTest.clickButton "Submit"
                     |> ProgramTest.expectViewHas [ Test.Html.Selector.exactText "That's correct!" ]
-        , test "Incorrect input says incorrect" <|
+        , Test.test "Incorrect input says incorrect" <|
             \_ ->
                 createWithInitalizedWord
                     -- Romaji stage
                     |> ProgramTest.fillIn "input-field" "input-field" "a"
                     |> ProgramTest.clickButton "Submit"
                     |> ProgramTest.expectViewHas [ Test.Html.Selector.exactText "Sorry, that's not the right answer!" ]
-        , test "Clicking on hidden glossary word reveals it" <|
+        , Test.test "Clicking on hidden glossary word reveals it" <|
             \_ ->
                 createWithInitalizedWord
                     -- Romaji stage

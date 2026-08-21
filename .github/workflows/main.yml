@@ -1,18 +1,32 @@
 on:
-  push:
-    branches:
-      - "main"
+  pull_request:
 
 jobs:
-  test:
-    name: Run test suite
-    runs-on: ubuntu-22.04
+  review:
+    name: Run elm-review
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: jorelali/setup-elm@v5
-        with:
-          elm-version: 0.19.1
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-elm
+
+      - name: Install frontend dependencies
+        run: npm ci
+      
+      - run: npm run review
+
+  test:
+    name: Run test suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-elm
+
+      - name: Install frontend dependencies
+        run: npm ci
 
       - name: Run elm tests
         run: npx elm-test --report="junit" > test-results.xml
@@ -22,54 +36,44 @@ jobs:
         with:
           paths: "test-results.xml"
         if: always()
+
   build:
     name: Build and minimize Elm
-    runs-on: ubuntu-22.04
-    needs: test
+    runs-on: ubuntu-latest
+    needs: [test, review]
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: jorelali/setup-elm@v5
-        with:
-          elm-version: 0.19.1
-      - name: Compile Elm to JS
-        run: elm make src/Main.elm --optimize --output elm.js
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/cache-elm
 
-      - name: Tree shake and minimize compiled js
-        run: |
-          npx uglify-js elm.js --compress 'pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,unsafe_comps,unsafe' --mangle 'reserved=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9]' --output elm.min.js
+      - name: Install frontend dependencies
+        run: npm ci
 
-      - name: Move to build directory
-        run: |
-          mkdir build
-          mv elm.min.js build/elm.js
-          mv index.html build/
-          mv style.css build/
+      - name: Build
+        run: npm run build
 
       - name: Upload production artifacts
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v5
         with:
           name: github-pages
-          path: build/
+          path: dist/
 
-  # Deploy job
   deploy:
-    # Add a dependency to the build job
     needs: build
+    if: github.ref == 'refs/heads/main'
 
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
     permissions:
       pages: write # to deploy to Pages
       id-token: write # to verify the deployment originates from an appropriate source
 
-    # Deploy to the github-pages environment
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    # Specify runner + deployment step
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v5
