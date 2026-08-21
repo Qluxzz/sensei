@@ -21,3 +21,16 @@ The included pipeline include three steps:
 - A test step that runs all tests and reports if all tests succeeded
 - A build step that compiles the code and optimizes/minimizes it
 - A publishing step that publishes it to Github pages
+
+## Keeping a template created repo up to date
+
+```sh
+
+git remote add upstream https://github.com/Qluxzz/elm-template.git
+git fetch upstream
+git config rerere.enabled true    # remembers conflict resolutions between merge
+
+# First merge needs --allow-unrelated-histories to allow merging the two repos together
+git merge upstream
+
+```
