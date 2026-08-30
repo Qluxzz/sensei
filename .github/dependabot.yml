@@ -4,6 +4,13 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      # Vite 8 is incompatible with the Elm plugin (hmsk/vite-plugin-elm#863)
+      - dependency-name: "vite"
+        versions: [">=8.0.0"]
+      # vite-plugin-pwa requires matching the Vite major version, so hold it to 7
+      - dependency-name: "vite-plugin-pwa"
+        versions: [">=2.0.0"]
     groups: 
       all:
         patterns:
